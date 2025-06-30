@@ -54,7 +54,7 @@ const UsdtIcon = () => (
 
   const tokens = [
     { symbol: "ETH", name: "Ethereum", balance: "12.5847", icon: <EthereumIcon /> },
-    { symbol: "ELDORADO", name: "Eldorado Token", balance: "2,450.00", icon: <UsdcIcon /> },
+    { symbol: "ELD", name: "Eldorado Token", balance: "2,450.00", icon: <img src="ELD.png" alt="ELD"  style={{ width: 24, height: 24 }}/> },
     { symbol: "USDC", name: "USD Coin", balance: "156.23", icon: <UsdcIcon /> },
     { symbol: "USDT", name: "Tether", balance: "89.45", icon: <UsdtIcon /> },
   ]

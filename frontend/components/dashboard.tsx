@@ -38,7 +38,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   ]
 
   const stats = [
-    { label: "Total Wins", value: "1,247 ETH", change: "-12.5%" },
+    { label: "Total Wins", value: "1,247 ETH", change: "12.5%" },
     { label: "Games Played", value: "8,432", change: "+8.2%" },
     { label: "Win Rate", value: "67.3%", change: "+2.1%" },
     { label: "Eldorado Tokens", value: "15,678", change: "15.7%" },
@@ -126,7 +126,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                   </div>
 
                   <h3 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">{game.title}</h3>
-                  <p className="text-pink-400 font-semibold mb-2 sm:mb-3">{game.subtitle}</p>
+                  <p className="text-green-400 font-semibold mb-2 sm:mb-3">{game.subtitle}</p>
                   <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6">{game.description}</p>
 
                   <button
