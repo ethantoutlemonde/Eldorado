@@ -18,7 +18,7 @@ class UserController extends Controller
             'nom' => 'required|string',
             'prenom' => 'required|string',
             'date_naissance' => 'required|date',
-            'statut' => 'in:verified,banned,admin',
+            'statut' => 'in:verified,banned,admin,pending',
         ]);
         return User::create($data);
     }

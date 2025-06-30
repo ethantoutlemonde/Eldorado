@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nom');
             $table->string('prenom');
             $table->date('date_naissance');
-            $table->enum('statut', ['verified', 'banned', 'admin'])->default('verified');
+            $table->enum('statut', ['verified', 'banned', 'admin', 'pending'])->default('pending');
             $table->timestamps();
         });
     }

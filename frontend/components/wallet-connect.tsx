@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { ArrowLeft, Wallet, Shield, Zap, Copy, ExternalLink } from "lucide-react"
 import { before } from "node:test"
 
+
 interface WalletConnectProps {
   onBack: () => void
   onNavigate: (view: "swap") => void
@@ -12,8 +13,8 @@ interface WalletConnectProps {
 export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
   const [isConnected, setIsConnected] = useState(false)
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null)
-  const [walletAddress] = useState("0x742d35Cc6634C0532925a3b8D4C9db4C4C4C4C4C")
-  const [balance] = useState("12.5847")
+  const [walletAddress, setWalletAddress] = useState<string>("")
+  const [balance, setBalance] = useState<string>("")
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -42,7 +43,7 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
     }
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const newErrors = []
     const today = new Date();
@@ -61,8 +62,32 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
     setErrors(newErrors)
 
     if (newErrors.length === 0) {
-      // Ici, tu peux faire ta logique d'envoi du formulaire (ex: API)
-      alert("Form submitted successfully!")
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nom: form.lastName,
+            prenom: form.firstName,
+            date_naissance: form.birthDate,
+            id: walletAddress
+          }),
+        })
+        if (!res.ok) {
+          const errorData = await res.json()
+          throw new Error(errorData.message || 'Erreur lors de la création')
+        }
+        const data = await res.json()
+        alert('Utilisateur créé avec succès !')
+        // reset form ou autres actions ici
+      } 
+      catch (err: unknown) {
+        if (err instanceof Error) {
+          alert('Erreur : ' + err.message)
+        } else {
+          alert('Erreur inconnue')
+        }
+      }
     }
   }
 
@@ -143,21 +168,27 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
   ]
 
   const handleConnect = async (walletName: string) => {
-    setSelectedWallet(walletName)
-    setIsConnecting(true)
-    setError(null)
+  setSelectedWallet(walletName)
+  setIsConnecting(true)
+  setError(null)
 
-    try {
-      if (walletName === "MetaMask") {
-        if (typeof window !== "undefined" && window.ethereum) {
-          // Request account access
-          await window.ethereum.request({ method: "eth_requestAccounts" })
+  try {
+    if (walletName === "MetaMask") {
+      if (typeof window !== "undefined" && window.ethereum) {
+        // Demande à MetaMask de connecter le compte
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" })
+
+        if (accounts.length > 0) {
+          setWalletAddress(accounts[0]) // <-- ici on stocke l'adresse
           setIsConnected(true)
         } else {
-          setError("MetaMask not detected. Please install MetaMask.")
+          setError("No wallet address found.")
         }
       } else {
-        // Simulate connection for other wallets
+        setError("MetaMask not detected. Please install MetaMask.")
+      }
+      } else {
+        // Connexion simulée pour d'autres wallets
         await new Promise((resolve) => setTimeout(resolve, 2000))
         setIsConnected(true)
       }
@@ -168,6 +199,7 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
       setIsConnecting(false)
     }
   }
+
 
   const handleDisconnect = () => {
     setIsConnected(false)
@@ -495,3 +527,4 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
     </div>
   )
 }
+
