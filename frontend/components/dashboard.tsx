@@ -38,7 +38,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   ]
 
   const stats = [
-    { label: "Total Wins", value: "1,247 ETH", change: "12.5%" },
+    { label: "Total Wins", value: "1,247 ETH", change: "-12.5%" },
     { label: "Games Played", value: "8,432", change: "+8.2%" },
     { label: "Win Rate", value: "67.3%", change: "+2.1%" },
     { label: "Eldorado Tokens", value: "15,678", change: "15.7%" },

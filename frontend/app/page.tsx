@@ -42,7 +42,7 @@ export default function CasinoApp() {
       case "poker":
         return <PokerTable onBack={() => setCurrentView("dashboard")} />
       case "wallet":
-        return <WalletConnect onBack={() => setCurrentView("dashboard")} />
+        return <WalletConnect onBack={() => setCurrentView("dashboard")} onNavigate={setCurrentView} />
       case "swap":
         return <TokenSwap onBack={() => setCurrentView("dashboard")} />
       default:
