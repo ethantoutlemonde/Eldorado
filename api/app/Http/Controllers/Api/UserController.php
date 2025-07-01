@@ -12,16 +12,50 @@ class UserController extends Controller
         return User::all();
     }
 
-    public function store(Request $request) {
+    // public function store(Request $request) {
+    //     $data = $request->validate([
+    //         'id' => 'required|string|unique:users',
+    //         'nom' => 'required|string',
+    //         'prenom' => 'required|string',
+    //         'date_naissance' => 'required|date',
+    //         'statut' => 'in:verified,banned,admin,pending',
+    //     ]);
+    //     return User::create($data);
+    // }
+
+    public function store(Request $request)
+    {
         $data = $request->validate([
             'id' => 'required|string|unique:users',
             'nom' => 'required|string',
             'prenom' => 'required|string',
             'date_naissance' => 'required|date',
             'statut' => 'in:verified,banned,admin,pending',
+            'piece_identite' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
         ]);
-        return User::create($data);
+
+        $user = User::create($data);
+
+        if ($request->hasFile('piece_identite')) {
+            $file = $request->file('piece_identite');
+            $extension = $file->getClientOriginalExtension();
+            $filename = $user->id . '.' . $extension;
+
+            $destination = public_path('idCards');
+            if (!file_exists($destination)) {
+                mkdir($destination, 0755, true);
+            }
+
+            $file->move($destination, $filename);
+
+            // Optionnel : ajoute l'URL dans la réponse
+            $user->piece_identite_url = asset('idCards/' . $filename);
+        }
+
+        return response()->json($user);
     }
+
+
 
     // public function show($id) {
     //     return User::findOrFail($id);

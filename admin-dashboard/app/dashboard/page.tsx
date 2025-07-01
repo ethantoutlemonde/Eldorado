@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Search, Filter, Eye, UsersIcon} from "lucide-react"
+import { Search, Filter, Eye, UsersIcon, CircleFadingPlus} from "lucide-react"
 import Link from "next/link"
 
 interface User {
@@ -163,7 +163,7 @@ export default function UsersPage() {
                     variant="outline"
                     className="flex items-center space-x-2"
                     size="sm">
-                    <UsersIcon className="h-4 w-4" />
+                    <CircleFadingPlus className="h-4 w-4" />
                     <span className="hidden sm:inline">Create</span>
                     </Button>
                 </Link>

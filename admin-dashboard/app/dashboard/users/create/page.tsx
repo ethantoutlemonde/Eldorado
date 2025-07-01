@@ -46,57 +46,67 @@ export default function createPage() {
     } else {
       setForm((prev) => ({ ...prev, [name]: value }))
     }
-    }
+  }
 
-    const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const newErrors = []
-    const today = new Date();
-    const birthDate = new Date(form.birthDate);
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    const dayDiff = today.getDate() - birthDate.getDate();
-    const is18OrOlder = age > 18 || (age === 18 && (monthDiff > 0 || (monthDiff === 0 && dayDiff >= 0)));
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const newErrors = [];
+  const today = new Date();
+  const birthDate = new Date(form.birthDate);
+  const age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  const dayDiff = today.getDate() - birthDate.getDate();
+  const is18OrOlder = age > 18 || (age === 18 && (monthDiff > 0 || (monthDiff === 0 && dayDiff >= 0)));
 
-    if (!form.lastName.trim()) newErrors.push("Last Name is required")
-    if (!form.firstName.trim()) newErrors.push("First Name is required")
-    if (!form.birthDate) newErrors.push("Date of Birth is required")
-    if (!form.idCard) newErrors.push("ID Document is required")
-    if (!form.walletAddress) newErrors.push("Wallet address is required")
-    if (!is18OrOlder) newErrors.push("You need to have at least 18 years old to register.")
+  if (!form.lastName.trim()) newErrors.push("Last Name is required");
+  if (!form.firstName.trim()) newErrors.push("First Name is required");
+  if (!form.birthDate) newErrors.push("Date of Birth is required");
+  if (!form.idCard) newErrors.push("ID Document is required");
+  if (!form.walletAddress) newErrors.push("Wallet address is required");
+  if (!is18OrOlder) newErrors.push("You need to have at least 18 years old to register.");
 
-    setErrors(newErrors)
+  setErrors(newErrors);
 
-    if (newErrors.length === 0) {
-      try {
-        const res = await fetch('http://127.0.0.1:8000/api/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nom: form.lastName,
-            prenom: form.firstName,
-            date_naissance: form.birthDate,
-            id: form.walletAddress
-          }),
-        })
-        if (!res.ok) {
-          const errorData = await res.json()
-          throw new Error(errorData.message || 'Error creating user')
-        }
-        const data = await res.json()
-        setsucces('Account as been created !')
-        setIsUserRegistered(true)
-        // reset form ou autres actions ici
-      } 
-      catch (err: unknown) {
-        if (err instanceof Error) {
-          setError('Error : ' + err.message)
-        } else {
-          setError('Unkonwn error occurred')
-        }
+  if (newErrors.length === 0) {
+    try {
+      const formData = new FormData();
+      formData.append('nom', form.lastName);
+      formData.append('prenom', form.firstName);
+      formData.append('date_naissance', form.birthDate);
+      formData.append('id', form.walletAddress);
+      if (form.idCard) {
+        formData.append('piece_identite', form.idCard);
+      }
+
+      const res = await fetch('http://127.0.0.1:8000/api/users', {
+        method: 'POST',
+        body: formData, // PAS d'entête Content-Type ici !
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Error creating user');
+      }
+      const data = await res.json();
+      setsucces('Account has been created!');
+      setIsUserRegistered(true);
+      setForm({
+        lastName: "",
+        firstName: "",
+        birthDate: "",
+        walletAddress: "",
+        idCard: null,
+      });
+      setFileName("");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError('Error: ' + err.message);
+      } else {
+        setError('Unknown error occurred');
       }
     }
   }
+}
 
 return (
     <div className="max-w-6xl mx-auto mt-10 p-6 bg-gray-50 rounded-lg shadow-md">

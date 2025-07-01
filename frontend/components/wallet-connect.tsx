@@ -57,50 +57,60 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const newErrors = []
-    const today = new Date();
-    const birthDate = new Date(form.birthDate);
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    const dayDiff = today.getDate() - birthDate.getDate();
-    const is18OrOlder = age > 18 || (age === 18 && (monthDiff > 0 || (monthDiff === 0 && dayDiff >= 0)));
+      e.preventDefault()
+      const newErrors = []
+      const today = new Date()
+      const birthDate = new Date(form.birthDate)
+      const age = today.getFullYear() - birthDate.getFullYear()
+      const monthDiff = today.getMonth() - birthDate.getMonth()
+      const dayDiff = today.getDate() - birthDate.getDate()
+      const is18OrOlder = age > 18 || (age === 18 && (monthDiff > 0 || (monthDiff === 0 && dayDiff >= 0)))
 
-    if (!form.lastName.trim()) newErrors.push("Last Name is required")
-    if (!form.firstName.trim()) newErrors.push("First Name is required")
-    if (!form.birthDate) newErrors.push("Date of Birth is required")
-    if (!form.idCard) newErrors.push("ID Document is required")
-    if (!is18OrOlder) newErrors.push("You need to have at least 18 years old to register.")
+      if (!form.lastName.trim()) newErrors.push("Last Name is required")
+      if (!form.firstName.trim()) newErrors.push("First Name is required")
+      if (!form.birthDate) newErrors.push("Date of Birth is required")
+      if (!form.idCard) newErrors.push("ID Document is required")
+      if (!is18OrOlder) newErrors.push("You need to have at least 18 years old to register.")
 
-    setErrors(newErrors)
+      setErrors(newErrors)
 
-    if (newErrors.length === 0) {
-      try {
-        const res = await fetch('http://127.0.0.1:8000/api/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nom: form.lastName,
-            prenom: form.firstName,
-            date_naissance: form.birthDate,
-            id: walletAddress
-          }),
-        })
-        if (!res.ok) {
-          const errorData = await res.json()
-          throw new Error(errorData.message || 'Error creating user')
-        }
-        const data = await res.json()
-        setsucces('Your account as been created !')
-        setIsUserRegistered(true)
-        // reset form ou autres actions ici
-      } 
-      catch (err: unknown) {
-        if (err instanceof Error) {
-          setError('Error : ' + err.message)
-        } else {
-          setError('Unkonwn error occurred')
-        }
+      if (newErrors.length === 0) {
+        try {
+          const formData = new FormData()
+          formData.append('nom', form.lastName)
+          formData.append('prenom', form.firstName)
+          formData.append('date_naissance', form.birthDate)
+          formData.append('id', walletAddress)
+           if (form.idCard) {
+          formData.append('piece_identite', form.idCard);
+          }
+
+          const res = await fetch('http://127.0.0.1:8000/api/users', {
+            method: 'POST',
+            body: formData, // Pas besoin de content-type, le navigateur gère ça
+          })
+
+          if (!res.ok) {
+            const errorData = await res.json()
+            throw new Error(errorData.message || 'Error creating user')
+          }
+          const data = await res.json();
+          setsucces('Account has been created!');
+          setIsUserRegistered(true);
+          setForm({
+            lastName: "",
+            firstName: "",
+            birthDate: "",
+            idCard: null,
+          });
+          setFileName("");
+
+        } catch (err: unknown) {
+          if (err instanceof Error) {
+            setError('Error : ' + err.message)
+          } else {
+            setError('Unknown error occurred')
+          }
       }
     }
   }
