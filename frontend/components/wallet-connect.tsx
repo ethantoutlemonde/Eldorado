@@ -16,11 +16,24 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
   const [walletAddress, setWalletAddress] = useState<string>("")
   const [balance, setBalance] = useState<string>("")
   const [isConnecting, setIsConnecting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string>("")
+  const [succes, setsucces] = useState<string>("")
+  const [isUserRegistered, setIsUserRegistered] = useState(true)
 
   useEffect(() => {
     checkWalletConnection()
   }, [])
+
+  useEffect(() => {
+  if (succes !== "" || error !== "") {
+    const timer = setTimeout(() => {
+      setsucces("")
+      setError("")
+    }, 10000)
+
+    return () => clearTimeout(timer)
+  }
+  }, [succes, error])
 
   const [form, setForm] = useState({
   lastName: "",
@@ -75,19 +88,39 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
         })
         if (!res.ok) {
           const errorData = await res.json()
-          throw new Error(errorData.message || 'Erreur lors de la création')
+          throw new Error(errorData.message || 'Error creating user')
         }
         const data = await res.json()
-        alert('Utilisateur créé avec succès !')
+        setsucces('Your account as been created !')
+        setIsUserRegistered(true)
         // reset form ou autres actions ici
       } 
       catch (err: unknown) {
         if (err instanceof Error) {
-          alert('Erreur : ' + err.message)
+          setError('Error : ' + err.message)
         } else {
-          alert('Erreur inconnue')
+          setError('Unkonwn error occurred')
         }
       }
+    }
+  }
+
+  const isuserRegistered = async (address: string) => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/users/' + address, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      if (!response.ok) {
+        throw new Error('Failed to check user registration')
+      }else {
+        setIsUserRegistered(true)
+      }
+    }catch (err) {
+      console.log("No wallet connected")
+      setIsUserRegistered(false)
     }
   }
 
@@ -170,7 +203,7 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
   const handleConnect = async (walletName: string) => {
   setSelectedWallet(walletName)
   setIsConnecting(true)
-  setError(null)
+  setError("")
 
   try {
     if (walletName === "MetaMask") {
@@ -181,6 +214,7 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
         if (accounts.length > 0) {
           setWalletAddress(accounts[0]) // <-- ici on stocke l'adresse
           setIsConnected(true)
+          isuserRegistered(accounts[0]) // Vérifie si l'utilisateur est enregistré
         } else {
           setError("No wallet address found.")
         }
@@ -204,7 +238,7 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
   const handleDisconnect = () => {
     setIsConnected(false)
     setSelectedWallet(null)
-    setError(null)
+    setError("")
   }
 
   const copyAddress = async () => {
@@ -240,105 +274,102 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
             <p className="text-gray-300">Your {selectedWallet} wallet is now connected</p>
           </div>
 
+          {!isUserRegistered && (
+            <div className="backdrop-blur-xl bg-black/30 border border-pink-500/30 rounded-3xl p-8 mb-8 space-y-6">
+              <p className="text-gray-300 text-lg font-semibold">You are new here?</p>
 
+              {/* Errors */}
+              {errors.length > 0 && (
+                <ul className="bg-red-600/20 border border-red-500 text-red-300 rounded-lg p-4 space-y-1 text-sm">
+                  {errors.map((error, idx) => (
+                    <li key={idx}>• {error}</li>
+                  ))}
+                </ul>
+              )}
 
+              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Nom */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Last Name</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={form.lastName}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 rounded-lg bg-black/50 text-white border border-gray-600 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:bg-black/50"
+                    placeholder="Doe"
+                  />
+                </div>
 
+                {/* Prénom */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">First Name</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={form.firstName}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 rounded-lg bg-black/50 text-white border border-gray-600 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:bg-black/50"
+                    placeholder="John"
+                  />
+                </div>
 
+                {/* Date de naissance */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Date of Birth</label>
+                  <input
+                    type="date"
+                    name="birthDate"
+                    value={form.birthDate}
+                    onChange={handleChange}
+                    style={{ colorScheme: "dark" }}
+                    className="w-full px-4 py-2 rounded-lg bg-black/50 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:bg-black/50"
+                  />
+                </div>
 
+                {/* Carte d'identité */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">ID Document (PDF or Image)</label>
+                  <input
+                    type="file"
+                    name="idCard"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={handleChange}
+                    className="hidden"
+                    id="id-upload"
+                  />
+                  <label
+                    htmlFor="id-upload"
+                    className="block w-full bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold py-3 px-4 rounded-md text-center cursor-pointer transition"
+                  >
+                    Upload ID
+                  </label>
+                  <p className="text-sm text-gray-400 mt-1 truncate">{fileName}</p>
+                </div>
 
+                {/* Bouton d'inscription */}
+                <div className="md:col-span-2">
+                  <button
+                    type="submit"
+                    className="w-full py-3 rounded-lg bg-pink-600 hover:bg-pink-700 text-white font-bold transition duration-300"
+                  >
+                    Register
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
-    <div className="backdrop-blur-xl bg-black/30 border border-pink-500/30 rounded-3xl p-8 mb-8 space-y-6">
-      <p className="text-gray-300 text-lg font-semibold">You are new here?</p>
-
-      {/* Errors */}
-      {errors.length > 0 && (
-        <ul className="bg-red-600/20 border border-red-500 text-red-300 rounded-lg p-4 space-y-1 text-sm">
-          {errors.map((error, idx) => (
-            <li key={idx}>• {error}</li>
-          ))}
-        </ul>
-      )}
-
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Nom */}
-        <div>
-          <label className="block text-sm text-gray-400 mb-1">Last Name</label>
-          <input
-            type="text"
-            name="lastName"
-            value={form.lastName}
-            onChange={handleChange}
-            className="w-full px-4 py-2 rounded-lg bg-black/50 text-white border border-gray-600 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:bg-black/50"
-            placeholder="Doe"
-          />
-        </div>
-
-        {/* Prénom */}
-        <div>
-          <label className="block text-sm text-gray-400 mb-1">First Name</label>
-          <input
-            type="text"
-            name="firstName"
-            value={form.firstName}
-            onChange={handleChange}
-            className="w-full px-4 py-2 rounded-lg bg-black/50 text-white border border-gray-600 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:bg-black/50"
-            placeholder="John"
-          />
-        </div>
-
-        {/* Date de naissance */}
-        <div>
-          <label className="block text-sm text-gray-400 mb-1">Date of Birth</label>
-          <input
-            type="date"
-            name="birthDate"
-            value={form.birthDate}
-            onChange={handleChange}
-            style={{ colorScheme: "dark" }}
-            className="w-full px-4 py-2 rounded-lg bg-black/50 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:bg-black/50"
-          />
-        </div>
-
-        {/* Carte d'identité */}
-        <div>
-          <label className="block text-sm text-gray-400 mb-1">ID Document (PDF or Image)</label>
-          <input
-            type="file"
-            name="idCard"
-            accept=".pdf,.jpg,.jpeg,.png"
-            onChange={handleChange}
-            className="hidden"
-            id="id-upload"
-          />
-          <label
-            htmlFor="id-upload"
-            className="block w-full bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold py-3 px-4 rounded-md text-center cursor-pointer transition"
-          >
-            Upload ID
-          </label>
-          <p className="text-sm text-gray-400 mt-1 truncate">{fileName}</p>
-        </div>
-
-        {/* Bouton d'inscription */}
-        <div className="md:col-span-2">
-          <button
-            type="submit"
-            className="w-full py-3 rounded-lg bg-pink-600 hover:bg-pink-700 text-white font-bold transition duration-300"
-          >
-            Register
-          </button>
-        </div>
-      </form>
-    </div>
-
-
-
-
-
-
-
-
-
+          {(succes !== "" || error !== "") && (
+            <div className="backdrop-blur-xl bg-black/30 border border-pink-500/30 rounded-3xl p-8 mb-8 space-y-6">
+              {succes !== "" && (
+                <p className="text-green-500 text-lg font-semibold">{succes}</p>
+              )}
+              {error !== "" && (
+                <p className="text-red-500 text-lg font-semibold">{error}</p>
+              )}
+            </div>
+          )}
 
 
           {/* Wallet Info */}

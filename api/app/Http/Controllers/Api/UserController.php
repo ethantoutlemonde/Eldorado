@@ -23,9 +23,23 @@ class UserController extends Controller
         return User::create($data);
     }
 
-    public function show($id) {
-        return User::findOrFail($id);
+    // public function show($id) {
+    //     return User::findOrFail($id);
+    // }
+
+    public function show($id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Utilisateur introuvable'
+            ], 404);
+        }
+
+        return response()->json($user);
     }
+
 
     public function update(Request $request, $id) {
         $user = User::findOrFail($id);
