@@ -12,48 +12,79 @@ class UserController extends Controller
         return User::all();
     }
 
-    // public function store(Request $request) {
+    // public function store(Request $request)
+    // {
     //     $data = $request->validate([
     //         'id' => 'required|string|unique:users',
     //         'nom' => 'required|string',
     //         'prenom' => 'required|string',
     //         'date_naissance' => 'required|date',
     //         'statut' => 'in:verified,banned,admin,pending',
+    //         'piece_identite' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
+    //     ], [
+    //         'id.unique' => 'Ce portefeuille est déjà enregistré.',
     //     ]);
-    //     return User::create($data);
-    // }
 
+    //     $user = User::create($data);
+
+    //     if ($request->hasFile('piece_identite')) {
+    //         $file = $request->file('piece_identite');
+    //         $extension = $file->getClientOriginalExtension();
+    //         $filename = $user->id . '.' . $extension;
+
+    //         $destination = public_path('idCards');
+    //         if (!file_exists($destination)) {
+    //             mkdir($destination, 0755, true);
+    //         }
+
+    //         $file->move($destination, $filename);
+
+    //         // Optionnel : ajoute l'URL dans la réponse
+    //         $user->piece_identite_url = asset('idCards/' . $filename);
+    //     }
+
+    //     return response()->json($user);
+    // }
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'id' => 'required|string|unique:users',
-            'nom' => 'required|string',
-            'prenom' => 'required|string',
-            'date_naissance' => 'required|date',
-            'statut' => 'in:verified,banned,admin,pending',
-            'piece_identite' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
-        ]);
+        try {
+            $data = $request->validate([
+                'id' => 'required|string|unique:users',
+                'nom' => 'required|string',
+                'prenom' => 'required|string',
+                'date_naissance' => 'required|date',
+                'statut' => 'in:verified,banned,admin,pending',
+                'piece_identite' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
+            ], [
+                'id.unique' => 'This wallet address is already registered.',
+            ]);
 
-        $user = User::create($data);
+            $user = User::create($data);
 
-        if ($request->hasFile('piece_identite')) {
-            $file = $request->file('piece_identite');
-            $extension = $file->getClientOriginalExtension();
-            $filename = $user->id . '.' . $extension;
+            if ($request->hasFile('piece_identite')) {
+                $file = $request->file('piece_identite');
+                $extension = $file->getClientOriginalExtension();
+                $filename = $user->id . '.' . $extension;
 
-            $destination = public_path('idCards');
-            if (!file_exists($destination)) {
-                mkdir($destination, 0755, true);
+                $destination = public_path('idCards');
+                if (!file_exists($destination)) {
+                    mkdir($destination, 0755, true);
+                }
+
+                $file->move($destination, $filename);
+
+                $user->piece_identite_url = asset('idCards/' . $filename);
             }
 
-            $file->move($destination, $filename);
+            return response()->json($user, 201);
 
-            // Optionnel : ajoute l'URL dans la réponse
-            $user->piece_identite_url = asset('idCards/' . $filename);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'errors' => $e->errors()
+            ], 422);
         }
-
-        return response()->json($user);
     }
+
 
 
 

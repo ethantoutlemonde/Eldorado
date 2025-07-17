@@ -92,9 +92,19 @@ export default function createPage() {
         body: formData, // PAS d'entête Content-Type ici !
       });
 
+      // if (!res.ok) {
+      //   const errorData = await res.json();
+      //   throw new Error(errorData.message || 'Error creating user');
+      // }
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || 'Error creating user');
+        if (errorData.errors) {
+          const validationMessages = Object.values(errorData.errors)
+            .flat()
+            .join('\n');
+          throw new Error(validationMessages);
+        }
+        throw new Error(errorData.message || 'Unknown error creating user');
       }
       const data = await res.json();
       setsucces('Account has been created!');

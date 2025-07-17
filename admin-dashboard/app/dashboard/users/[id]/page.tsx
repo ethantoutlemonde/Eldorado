@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Edit, Check, Ban, Trash2, Calendar, Wallet, Save, IdCard } from "lucide-react"
 import Link from "next/link"
 import UserIdCard from "./UserIdCard"
+import { ConfirmModal } from "./ConfirmModal"
 
 interface UserProfile {
   id: string
@@ -38,6 +39,8 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
   const [updating, setUpdating] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const router = useRouter()
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
 
   useEffect(() => {
     fetchUser()
@@ -147,7 +150,20 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
     )
   }
 
-  {console.log("UserId dans UserIdCard:", user.id)}
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmAdminToggle = () => {
+    if (user.statut === "verified") {
+      updateUserStatus("admin");
+    } else if (user.statut === "admin") {
+      updateUserStatus("verified");
+    }
+    setIsModalOpen(false);
+  };
+
+
 
 
   return (
@@ -280,6 +296,18 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
               </Button>
             )}
 
+            {(user.statut === "admin" || user.statut === "verified") && (
+              <Button 
+                onClick={handleOpenModal}
+                variant={user.statut === "verified" ? "outline" : undefined}
+                className={`w-full justify-start ${user.statut === "verified" ? "text-purple-600 border-purple-200 hover:bg-purple-50" : "bg-purple-600 text-white hover:bg-purple-700"}`}
+                disabled={updating}
+              >
+                {user.statut === "verified" ? <Check className="mr-2 h-4 w-4" /> : <Ban className="mr-2 h-4 w-4" />}
+                {user.statut === "verified" ? "Promote to Admin" : "Demote from Admin"}
+              </Button>
+            )}
+
             {user.statut !== "banned" ? (
               <Button
                 onClick={() => updateUserStatus("banned")}
@@ -313,6 +341,13 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
           </CardContent>
         </Card>
       </div>
+      <ConfirmModal
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      onConfirm={handleConfirmAdminToggle}
+      confirmationPhrase="Approved"
+      message={`Type "Approved" to confirm this action.`}
+    />
     </div>
   )
 }
