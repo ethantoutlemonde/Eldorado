@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
@@ -41,8 +41,9 @@ contract Swap is ReentrancyGuard, Ownable {
         address _USDC,
         address _USDT,
         address _WETH,
-        address _treasury
-    ) {
+        address _treasury,
+        address _initialOwner
+    ) Ownable(_initialOwner) {
         router = IUniswapV2Router(_router);
         ELD = _ELD;
         USDC = _USDC;
@@ -75,7 +76,7 @@ contract Swap is ReentrancyGuard, Ownable {
 
         (uint256 amount, uint256 fee) = _applyFee(msg.value);
 
-        address ;
+        address[] memory path = new address[](2);
         path[0] = WETH;
         path[1] = ELD;
 
@@ -109,7 +110,7 @@ contract Swap is ReentrancyGuard, Ownable {
             IERC20(tokenIn).transfer(treasury, fee);
         }
 
-        address ;
+        address[] memory path = new address[](2);
         path[0] = tokenIn;
         path[1] = ELD;
 
@@ -140,7 +141,7 @@ contract Swap is ReentrancyGuard, Ownable {
             IERC20(ELD).transfer(treasury, fee);
         }
 
-        address ;
+        address[] memory path = new address[](2);
         path[0] = ELD;
         path[1] = tokenOut;
 
