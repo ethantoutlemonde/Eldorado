@@ -19,6 +19,8 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
   const [error, setError] = useState<string>("")
   const [succes, setsucces] = useState<string>("")
   const [isUserRegistered, setIsUserRegistered] = useState(true)
+  const allowedExtensions = ["pdf", "jpg", "jpeg", "png"]
+
 
   useEffect(() => {
     checkWalletConnection()
@@ -71,6 +73,14 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
       if (!form.birthDate) newErrors.push("Date of Birth is required")
       if (!form.idCard) newErrors.push("ID Document is required")
       if (!is18OrOlder) newErrors.push("You need to have at least 18 years old to register.")
+
+           // Vérification type de fichier (si fichier sélectionné)
+      if (form.idCard) {
+        const ext = form.idCard.name.split(".").pop()?.toLowerCase() || "";
+        if (!allowedExtensions.includes(ext)) {
+          newErrors.push(`Invalid file type. Allowed types: ${allowedExtensions.join(", ")}`);
+        }
+      }
 
       setErrors(newErrors)
 
@@ -355,6 +365,9 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
                     Upload ID
                   </label>
                   <p className="text-sm text-gray-400 mt-1 truncate">{fileName}</p>
+                  {error && (
+                    <p className="text-red-600 text-sm mt-2 font-semibold">{error}</p>
+                  )}
                 </div>
 
                 {/* Bouton d'inscription */}
