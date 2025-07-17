@@ -33,6 +33,27 @@ export default function DashboardLayout({
     }
   }, [router])
 
+  useEffect(() => {
+  if (typeof window === "undefined" || !window.ethereum) return
+
+  const handleAccountsChanged = (accounts: string[]) => {
+    if (accounts.length === 0) {
+      // MetaMask est déconnecté
+      localStorage.removeItem("walletAddress")
+      localStorage.removeItem("isAdmin")
+      localStorage.removeItem("userData")
+      router.push("/")
+    }
+  }
+
+  window.ethereum.on("accountsChanged", handleAccountsChanged)
+
+  return () => {
+    window.ethereum.removeListener("accountsChanged", handleAccountsChanged)
+  }
+}, [router])
+
+
   const handleLogout = () => {
     localStorage.removeItem("walletAddress")
     localStorage.removeItem("isAdmin")
@@ -55,12 +76,10 @@ export default function DashboardLayout({
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="flex items-center px-4 sm:px-6 py-4 border-b border-gray-200">
-        <img src="eldorado-preview.png" alt="eldorado logo" className="invert h-10 md:h-12"  />
+        <img src="../../eldorado-preview.png" alt="eldorado logo" className="invert h-10 md:h-12"  />
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-3 sm:px-4 py-4 sm:py-6 space-y-1 sm:space-y-2">
         {navigation.map((item) => {
           const isActive = pathname === item.href
