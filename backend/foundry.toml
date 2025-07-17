@@ -9,4 +9,5 @@ solc_version = "0.8.28"
 
 [profile.default.dependencies]
 openzeppelin-contracts = { git = "https://github.com/OpenZeppelin/openzeppelin-contracts.git", tag = "v5.0.2" }
+uniswap-v2-periphery = { git = "https://github.com/Uniswap/v2-periphery.git", tag = "v1.1.0" }
 
