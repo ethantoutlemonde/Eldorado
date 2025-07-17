@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Edit, Check, Ban, Trash2, Calendar, Wallet, Save } from "lucide-react"
+import { ArrowLeft, Edit, Check, Ban, Trash2, Calendar, Wallet, Save, IdCard } from "lucide-react"
 import Link from "next/link"
+import UserIdCard from "./UserIdCard"
 
 interface UserProfile {
   id: string
@@ -146,6 +147,9 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
     )
   }
 
+  {console.log("UserId dans UserIdCard:", user.id)}
+
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -175,8 +179,9 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-200 rounded-lg flex items-center justify-center mx-auto sm:mx-0">
                 <span className="text-xl sm:text-2xl font-medium text-gray-600">
-                  {user.prenom.charAt(0)}
-                  {user.nom.charAt(0)}
+                  <UserIdCard userId={user.id} />
+                  {/* {user.prenom.charAt(0)}
+                  {user.nom.charAt(0)} */}
                 </span>
               </div>
               <div className="text-center sm:text-left">
