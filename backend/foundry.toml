@@ -6,3 +6,7 @@ solc_version = "0.8.28"
 
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+
+[profile.default.dependencies]
+openzeppelin-contracts = { git = "https://github.com/OpenZeppelin/openzeppelin-contracts.git", tag = "v5.0.2" }
+
