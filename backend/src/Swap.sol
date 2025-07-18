@@ -104,7 +104,9 @@ contract Swap is ReentrancyGuard, Ownable {
 
         (uint256 amount, uint256 fee) = _applyFee(amountIn);
 
-        IERC20(tokenIn).approve(address(router), amount);
+        // IERC20(tokenIn).approve(address(router), amount);
+        IERC20(tokenIn).approve(address(router), 0);       // reset pour compatibilité (ex: USDT)
+        IERC20(tokenIn).approve(address(router), amount);  // autorisation réelle
 
         if (fee > 0) {
             IERC20(tokenIn).transfer(treasury, fee);
@@ -135,7 +137,9 @@ contract Swap is ReentrancyGuard, Ownable {
 
         (uint256 amount, uint256 fee) = _applyFee(amountIn);
 
-        IERC20(ELD).approve(address(router), amount);
+        // IERC20(ELD).approve(address(router), amount);
+        IERC20(ELD).approve(address(router), 0);       // reset pour compatibilité (ex: USDT)
+        IERC20(ELD).approve(address(router), amount);  // autorisation réelle
 
         if (fee > 0) {
             IERC20(ELD).transfer(treasury, fee);

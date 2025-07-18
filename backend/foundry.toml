@@ -4,6 +4,11 @@ out = "out"
 libs = ["lib"]
 solc_version = "0.8.28"
 
+fs_permissions = [
+    { access = "read-write", path = "broadcast" },
+    { access = "read-write", path = "script/output" }
+]
+
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
 
@@ -11,3 +16,5 @@ solc_version = "0.8.28"
 openzeppelin-contracts = { git = "https://github.com/OpenZeppelin/openzeppelin-contracts.git", tag = "v5.0.2" }
 uniswap-v2-periphery = { git = "https://github.com/Uniswap/v2-periphery.git", tag = "v1.1.0" }
 
+[rpc_endpoints]
+local = "http://127.0.0.1:8545"

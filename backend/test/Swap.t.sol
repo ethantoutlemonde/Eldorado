@@ -244,6 +244,9 @@ contract SwapTest is Test {
     function testSwapELDToETH() public {
         uint256 eldAmount = 1000 * 1e18;
         
+        mockRouter.setRate(address(eldToken), 1e18); // 1 ELD = 1 ETH
+        deal(address(mockRouter), 1000 ether);
+
         vm.startPrank(user);
         
         // Approve swap contract to spend ELD
@@ -264,8 +267,8 @@ contract SwapTest is Test {
         
         // In a real scenario, this would swap to ETH
         // Our mock swaps to WETH tokens instead
-        assertGt(wethToken.balanceOf(user), 0);
-        
+        // assertGt(wethToken.balanceOf(user), 0);
+        assertGt(user.balance, initialUserETH);
         vm.stopPrank();
     }
     
