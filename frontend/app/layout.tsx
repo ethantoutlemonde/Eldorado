@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/components/auth-context'
+import Background from '@/components/background'
 
 export const metadata: Metadata = {
   title: 'ELDORADO',
@@ -18,7 +19,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <Background>{children}</Background>
+        </AuthProvider>
       </body>
     </html>
   )
