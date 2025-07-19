@@ -3,15 +3,16 @@
 import { useState, useEffect } from "react"
 import { Home, Coins, CreditCard, ArrowLeftRight } from "lucide-react"
 import { BurgerMenu } from "./burger-menu"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 interface NavigationProps {
-  currentView: string
-  onNavigate: (view: string) => void
-  onSecretMode: () => void
+  onSecretMode?: () => void
 }
 
-export function Navigation({ currentView, onNavigate, onSecretMode }: NavigationProps) {
+export function Navigation({ onSecretMode }: NavigationProps = {}) {
   const [secretSequence, setSecretSequence] = useState("")
+  const pathname = usePathname()
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -37,9 +38,9 @@ export function Navigation({ currentView, onNavigate, onSecretMode }: Navigation
   }, [secretSequence, onSecretMode])
 
   const navItems = [
-    { id: "dashboard", icon: Home, label: "Dashboard" },
-    { id: "wallet", icon: CreditCard, label: "Wallet" },
-    { id: "swap", icon: ArrowLeftRight, label: "Swap" },
+    { href: "/dashboard", icon: Home, label: "Dashboard" },
+    { href: "/wallet", icon: CreditCard, label: "Wallet" },
+    { href: "/swap", icon: ArrowLeftRight, label: "Swap" },
   ]
 
   return (
@@ -50,7 +51,7 @@ export function Navigation({ currentView, onNavigate, onSecretMode }: Navigation
             <div className="flex items-center space-x-2">
               {/* Burger Menu for Mobile */}
               <div className="md:hidden mr-2">
-                <BurgerMenu currentView={currentView} onNavigate={onNavigate} onSecretMode={onSecretMode} />
+                <BurgerMenu onSecretMode={onSecretMode} />
               </div>
 
               {/* <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-violet-500 rounded-xl flex items-center justify-center">
@@ -65,18 +66,18 @@ export function Navigation({ currentView, onNavigate, onSecretMode }: Navigation
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
               {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => onNavigate(item.id)}
+                <Link
+                  key={item.href}
+                  href={item.href}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 ${
-                    currentView === item.id
+                    pathname === item.href
                       ? "bg-gradient-to-r from-pink-500 to-violet-500 text-white shadow-lg shadow-pink-500/25"
                       : "text-gray-300 hover:text-white hover:bg-white/10"
                   }`}
                 >
                   <item.icon className="w-5 h-5" />
                   <span>{item.label}</span>
-                </button>
+                </Link>
               ))}
             </div>
 

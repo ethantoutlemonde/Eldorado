@@ -3,20 +3,16 @@
 import { useState, useEffect } from "react"
 import { Menu, X, Home, Zap, Target, Spade, CreditCard, ArrowLeftRight, Lock } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 interface BurgerMenuProps {
-  currentView: string
-  onNavigate: (view: string) => void
-  onSecretMode: () => void
+  onSecretMode?: () => void
 }
 
-export function BurgerMenu({ currentView, onNavigate, onSecretMode }: BurgerMenuProps) {
+export function BurgerMenu({ onSecretMode }: BurgerMenuProps = {}) {
   const [isOpen, setIsOpen] = useState(false)
-
-  // Close menu when view changes
-  useEffect(() => {
-    setIsOpen(false)
-  }, [currentView])
+  const pathname = usePathname()
 
   // Close menu when clicking outside the menu
   useEffect(() => {
@@ -44,13 +40,13 @@ export function BurgerMenu({ currentView, onNavigate, onSecretMode }: BurgerMenu
   }, [isOpen])
 
   const menuItems = [
-    { id: "dashboard", label: "Home", icon: Home },
-    { id: "slots", label: "Slots", icon: Zap },
-    { id: "roulette", label: "Roulette", icon: Target },
-    { id: "poker", label: "Poker", icon: Spade },
-    { id: "wallet", label: "Wallet", icon: CreditCard },
-    { id: "swap", label: "Token Swap", icon: ArrowLeftRight },
-    { id: "secret", label: "Strip Mode", icon: Lock, action: onSecretMode },
+    { href: "/dashboard", label: "Home", icon: Home },
+    { href: "/slots", label: "Slots", icon: Zap },
+    { href: "/spin", label: "Roulette", icon: Target },
+    { href: "/poker", label: "Poker", icon: Spade },
+    { href: "/wallet", label: "Wallet", icon: CreditCard },
+    { href: "/swap", label: "Token Swap", icon: ArrowLeftRight },
+    { href: "/secret", label: "Strip Mode", icon: Lock, action: onSecretMode },
   ]
 
   return (
@@ -99,25 +95,22 @@ export function BurgerMenu({ currentView, onNavigate, onSecretMode }: BurgerMenu
 
               <nav className="space-y-1">
                 {menuItems.map((item) => (
-                  <button
-                    key={item.id}
+                  <Link
+                    key={item.href}
+                    href={item.href}
                     onClick={() => {
-                      if (item.action) {
-                        item.action()
-                      } else {
-                        onNavigate(item.id)
-                      }
+                      if (item.action) item.action()
                       setIsOpen(false)
                     }}
                     className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl transition-all duration-300 ${
-                      currentView === item.id
+                      pathname === item.href
                         ? "bg-gradient-to-r from-pink-500 to-violet-500 text-white"
                         : "text-gray-300 hover:bg-white/10"
                     }`}
                   >
                     <item.icon className="w-5 h-5" />
                     <span>{item.label}</span>
-                  </button>
+                  </Link>
                 ))}
               </nav>
 

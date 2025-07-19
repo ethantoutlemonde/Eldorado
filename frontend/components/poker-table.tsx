@@ -2,12 +2,10 @@
 
 import { useState } from "react"
 import { ArrowLeft, User } from "lucide-react"
+import { useRouter } from "next/navigation"
 
-interface PokerTableProps {
-  onBack: () => void
-}
-
-export function PokerTable({ onBack }: PokerTableProps) {
+export function PokerTable() {
+  const router = useRouter()
   const [playerCards, setPlayerCards] = useState(["🂡", "🂮"])
   const [communityCards, setCommunityCards] = useState(["🂣", "🂧", "🂪", "🂫", "🂭"])
   const [pot, setPot] = useState(450)
@@ -54,7 +52,7 @@ export function PokerTable({ onBack }: PokerTableProps) {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center mb-8">
           <button
-            onClick={onBack}
+            onClick={() => router.push('/dashboard')}
             className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
