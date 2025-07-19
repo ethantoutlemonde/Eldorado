@@ -1,19 +1,18 @@
 "use client"
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { WalletConnect } from "@/components/wallet-connect";
 import { useAuth } from "@/components/auth-context";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-export default function Home() {
+export default function LoginPage() {
   const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (user && (user.statut === "verified" || user.statut === "admin")) {
       router.replace("/dashboard");
-    } else {
-      router.replace("/login");
     }
   }, [user, router]);
 
-  return null;
+  return <WalletConnect />;
 }

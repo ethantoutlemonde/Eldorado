@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import {
   X, Eye, EyeOff, Terminal,
   Zap, Target, Spade
@@ -84,9 +85,10 @@ export function SecretMode({ onExit }: SecretModeProps) {
     }, 500)
   }
 
+  const router = useRouter()
   const onNavigate = (id: string) => {
-    console.log("Navigating to:", id)
-    // TODO: replace this with navigation logic (e.g. router.push or state change)
+    const path = id === 'roulette' ? '/spin' : `/${id}`
+    router.push(path)
   }
 
   return (

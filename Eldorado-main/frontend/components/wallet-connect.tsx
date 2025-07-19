@@ -2,15 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { ArrowLeft, Wallet, Shield, Zap, Copy, ExternalLink } from "lucide-react"
-import { before } from "node:test"
+import { useRouter } from "next/navigation"
+import { useAuth } from "./auth-context"
 
 
-interface WalletConnectProps {
-  onBack: () => void
-  onNavigate: (view: "swap") => void
-}
-
-export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
+export function WalletConnect() {
+  const router = useRouter()
+  const { login, logout, user } = useAuth()
   const [isConnected, setIsConnected] = useState(false)
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null)
   const [walletAddress, setWalletAddress] = useState<string>("")
@@ -107,6 +105,7 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
           const data = await res.json();
           setsucces('Account has been created!');
           setIsUserRegistered(true);
+          await isuserRegistered(walletAddress);
           setForm({
             lastName: "",
             firstName: "",
@@ -135,11 +134,17 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
       })
       if (!response.ok) {
         throw new Error('Failed to check user registration')
-      }else {
-        setIsUserRegistered(true)
       }
-    }catch (err) {
-      console.log("No wallet connected")
+      const data = await response.json()
+      setIsUserRegistered(true)
+      if (data.statut === 'verified' || data.statut === 'admin') {
+        login(data)
+        router.push('/dashboard')
+      } else {
+        setError('Account pending validation')
+      }
+    } catch (err) {
+      console.log('No wallet connected')
       setIsUserRegistered(false)
     }
   }
@@ -151,6 +156,8 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
         if (accounts.length > 0) {
           setIsConnected(true)
           setSelectedWallet("MetaMask")
+          setWalletAddress(accounts[0])
+          await isuserRegistered(accounts[0])
         }
       }
     } catch (err) {
@@ -259,6 +266,7 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
     setIsConnected(false)
     setSelectedWallet(null)
     setError("")
+    logout()
   }
 
   const copyAddress = async () => {
@@ -276,7 +284,7 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center mb-8">
             <button
-              onClick={onBack}
+              onClick={() => router.push('/dashboard')}
               className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -457,7 +465,7 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
 
           {/* Quick Actions */}
           <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <button onClick={() => onNavigate("swap")} className="backdrop-blur-xl bg-black/20 border border-pink-500/20 rounded-2xl p-6 hover:border-pink-500/40 transition-all duration-300 text-left">
+            <button onClick={() => router.push('/swap')} className="backdrop-blur-xl bg-black/20 border border-pink-500/20 rounded-2xl p-6 hover:border-pink-500/40 transition-all duration-300 text-left">
               <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4">
                 <Zap className="w-6 h-6 text-white" />
               </div>
@@ -465,7 +473,7 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
               <p className="text-gray-400 text-sm">Add funds to your wallet</p>
             </button>
 
-            <button onClick={() => onNavigate("swap")} className="backdrop-blur-xl bg-black/20 border border-pink-500/20 rounded-2xl p-6 hover:border-pink-500/40 transition-all duration-300 text-left">
+            <button onClick={() => router.push('/swap')} className="backdrop-blur-xl bg-black/20 border border-pink-500/20 rounded-2xl p-6 hover:border-pink-500/40 transition-all duration-300 text-left">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4">
                 <ArrowLeft className="w-6 h-6 text-white transform rotate-180" />
               </div>
@@ -501,7 +509,7 @@ export function WalletConnect({ onBack, onNavigate }: WalletConnectProps) {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center mb-8">
           <button
-            onClick={onBack}
+            onClick={() => router.push('/dashboard')}
             className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />

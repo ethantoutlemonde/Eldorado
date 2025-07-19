@@ -4,11 +4,10 @@ import { useState, useEffect } from "react"
 import { Zap, Target, Spade, TrendingUp, TrendingDown } from "lucide-react"
 import AnimatedNumber from "@/components/ui/animated-number"
 
-interface DashboardProps {
-  onNavigate: (view: string) => void
-}
+import { useRouter } from "next/navigation"
 
-export function Dashboard({ onNavigate }: DashboardProps) {
+export function Dashboard() {
+  const router = useRouter()
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
 
   const games = [
@@ -138,7 +137,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               className="group cursor-pointer"
               onMouseEnter={() => setHoveredCard(game.id)}
               onMouseLeave={() => setHoveredCard(null)}
-              onClick={() => onNavigate(game.id)}
+              onClick={() => {
+                const path =
+                  game.id === 'roulette'
+                    ? '/spin'
+                    : `/${game.id}`
+                router.push(path)
+              }}
             >
               <div
                 className={`relative backdrop-blur-xl bg-black/20 border border-pink-500/20 rounded-3xl p-6 sm:p-8 transition-all duration-500 transform ${
