@@ -5,12 +5,10 @@ import { motion, AnimatePresence } from "framer-motion"
 import { ArrowLeft, Play, Volume2, VolumeX, Plus, Minus, Settings, HelpCircle, Award, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 
-interface SlotMachineProps {
-  onBack: () => void
-}
-
-export function SlotMachine({ onBack }: SlotMachineProps) {
+export function SlotMachine() {
+  const router = useRouter()
   // Game state
   const [reels, setReels] = useState([0, 0, 0])
   const [visibleSymbols, setVisibleSymbols] = useState([
@@ -474,7 +472,7 @@ export function SlotMachine({ onBack }: SlotMachineProps) {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <button
-            onClick={onBack}
+            onClick={() => router.push('/dashboard')}
             className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />

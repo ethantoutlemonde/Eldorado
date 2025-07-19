@@ -2,10 +2,7 @@
 
 import { useState } from "react"
 import { ArrowLeft, ExternalLink, Copy, CheckCircle } from "lucide-react"
-
-interface RouletteProps {
-  onBack: () => void
-}
+import { useRouter } from "next/navigation"
 
 // Types pour la blockchain
 interface WalletState {
@@ -22,7 +19,8 @@ interface GameState {
   blockNumber?: number
 }
 
-export function Roulette({ onBack }: RouletteProps) {
+export function Roulette() {
+  const router = useRouter()
   const [isSpinning, setIsSpinning] = useState(false)
   const [currentNumber, setCurrentNumber] = useState(0)
   const [balance, setBalance] = useState(1000)
@@ -374,7 +372,7 @@ export function Roulette({ onBack }: RouletteProps) {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <button
-            onClick={onBack}
+            onClick={() => router.push('/dashboard')}
             className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
