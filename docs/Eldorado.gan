@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?><project name="Eldorado" company="" webLink="http://" view-date="2024-12-23" view-index="0" gantt-divider-location="351" resource-divider-location="300" version="3.2.3230" locale="fr_FR">
+    <description/>
+    <view zooming-state="default:7" id="gantt-chart">
+        <field id="tpd3" name="Nom" width="200" order="0"/>
+        <field id="tpd4" name="Date de début" width="75" order="1"/>
+        <field id="tpd5" name="Date de fin" width="75" order="2"/>
+        <option id="filter.completedTasks" value="false"/>
+        <option id="color.recent">
+            <![CDATA[#0000ff #cc00cc #cc0033 #00ff33 #33ff33 #33cc00]]>
+        </option>
+    </view>
+    <view id="resource-table">
+        <field id="0" name="Nom" width="210" order="0"/>
+        <field id="1" name="Rôle par défaut" width="86" order="1"/>
+    </view>
+    <!-- -->
+    <calendars>
+        <day-types>
+            <day-type id="0"/>
+            <day-type id="1"/>
+            <default-week id="1" name="default" sun="1" mon="0" tue="0" wed="0" thu="0" fri="0" sat="1"/>
+            <only-show-weekends value="false"/>
+            <overriden-day-types/>
+            <days/>
+        </day-types>
+    </calendars>
+    <tasks empty-milestones="true">
+        <taskproperties>
+            <taskproperty id="tpd0" name="type" type="default" valuetype="icon"/>
+            <taskproperty id="tpd1" name="priority" type="default" valuetype="icon"/>
+            <taskproperty id="tpd2" name="info" type="default" valuetype="icon"/>
+            <taskproperty id="tpd3" name="name" type="default" valuetype="text"/>
+            <taskproperty id="tpd4" name="begindate" type="default" valuetype="date"/>
+            <taskproperty id="tpd5" name="enddate" type="default" valuetype="date"/>
+            <taskproperty id="tpd6" name="duration" type="default" valuetype="int"/>
+            <taskproperty id="tpd7" name="completion" type="default" valuetype="int"/>
+            <taskproperty id="tpd8" name="coordinator" type="default" valuetype="text"/>
+            <taskproperty id="tpd9" name="predecessorsr" type="default" valuetype="text"/>
+        </taskproperties>
+        <task id="1" name="Phase de Préparation" meeting="false" start="2025-01-13" duration="7" complete="0" expand="true">
+            <task id="0" name="Étude du contexte" color="#8cb6ce" meeting="false" start="2025-01-13" duration="2" complete="0" thirdDate="2024-06-24" thirdDate-constraint="0" expand="true">
+                <depend id="2" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="2" name="Mise en place des outils" color="#8cb6ce" meeting="false" start="2025-01-15" duration="5" complete="0" thirdDate="2024-12-31" thirdDate-constraint="0" expand="true">
+                <depend id="4" type="2" difference="0" hardness="Strong"/>
+            </task>
+        </task>
+        <task id="3" name="Smart Contract" meeting="false" start="2025-01-22" duration="15" complete="0" expand="true">
+            <task id="4" name="Développement du contrat" color="#8cb6ce" meeting="false" start="2025-01-22" duration="5" complete="0" thirdDate="2024-12-31" thirdDate-constraint="0" expand="true">
+                <depend id="5" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="5" name="dépôts/retraits" color="#8cb6ce" meeting="false" start="2025-01-29" duration="3" complete="0" thirdDate="2024-12-31" thirdDate-constraint="0" expand="true">
+                <depend id="6" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="6" name="Vérification et sécurité" color="#8cb6ce" meeting="false" start="2025-02-03" duration="2" complete="0" thirdDate="2024-12-31" thirdDate-constraint="0" expand="true">
+                <depend id="7" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="7" name="Tests unitaires" color="#8cb6ce" meeting="false" start="2025-02-05" duration="3" complete="0" thirdDate="2025-01-21" thirdDate-constraint="0" expand="true">
+                <depend id="8" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="8" name="correction des bugs" color="#8cb6ce" meeting="false" start="2025-02-10" duration="2" complete="0" thirdDate="2025-01-21" thirdDate-constraint="0" expand="true">
+                <depend id="10" type="2" difference="0" hardness="Strong"/>
+            </task>
+        </task>
+        <task id="9" name="Roulette" color="#8cb6ce" meeting="false" start="2025-02-12" duration="8" complete="0" thirdDate="2025-01-06" thirdDate-constraint="0" expand="true">
+            <task id="10" name="Chainlink VRF" color="#8cb6ce" meeting="false" start="2025-02-12" duration="3" complete="0" thirdDate="2025-01-06" thirdDate-constraint="0" expand="true">
+                <depend id="11" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="11" name="résultats de la roulette" color="#8cb6ce" meeting="false" start="2025-02-17" duration="2" complete="0" thirdDate="2025-01-08" thirdDate-constraint="0" expand="true">
+                <depend id="12" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="12" name="Affichage resultat" color="#8cb6ce" meeting="false" start="2025-02-19" duration="3" complete="0" thirdDate="2025-01-08" thirdDate-constraint="0" expand="true">
+                <depend id="14" type="2" difference="0" hardness="Strong"/>
+            </task>
+        </task>
+        <task id="13" name="Gestion des Gains" meeting="false" start="2025-02-24" duration="6" complete="0" expand="true">
+            <task id="14" name="Calcul des paiements" color="#8cb6ce" meeting="false" start="2025-02-24" duration="2" complete="0" thirdDate="2025-01-08" thirdDate-constraint="0" expand="true">
+                <depend id="15" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="15" name="Gestion des pertes" color="#8cb6ce" meeting="false" start="2025-02-26" duration="2" complete="0" thirdDate="2025-01-09" thirdDate-constraint="0" expand="true">
+                <depend id="16" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="16" name="commission" color="#8cb6ce" meeting="false" start="2025-02-28" duration="2" complete="0" thirdDate="2025-01-27" thirdDate-constraint="0" expand="true">
+                <depend id="19" type="2" difference="0" hardness="Strong"/>
+            </task>
+        </task>
+        <task id="18" name="Frontend" color="#8cb6ce" meeting="false" start="2025-03-04" duration="16" complete="0" thirdDate="2025-01-27" thirdDate-constraint="0" expand="true">
+            <task id="19" name="interface utilisateur" color="#8cb6ce" meeting="false" start="2025-03-04" duration="5" complete="0" thirdDate="2025-01-27" thirdDate-constraint="0" expand="true">
+                <depend id="20" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="20" name="WalletConnect" color="#8cb6ce" meeting="false" start="2025-03-11" duration="3" complete="0" thirdDate="2025-01-27" thirdDate-constraint="0" expand="true">
+                <depend id="22" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="22" name="mises" color="#8cb6ce" meeting="false" start="2025-03-14" duration="2" complete="0" thirdDate="2025-01-27" thirdDate-constraint="0" expand="true">
+                <depend id="23" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="23" name="affichage des résultats" color="#8cb6ce" meeting="false" start="2025-03-18" duration="2" complete="0" thirdDate="2025-01-27" thirdDate-constraint="0" expand="true">
+                <depend id="24" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="24" name="retraits" color="#8cb6ce" meeting="false" start="2025-03-20" duration="2" complete="0" thirdDate="2025-01-27" thirdDate-constraint="0" expand="true">
+                <depend id="26" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="26" name="historiques de jeux" color="#8cb6ce" meeting="false" start="2025-03-24" duration="2" complete="0" thirdDate="2025-01-28" thirdDate-constraint="0" expand="true">
+                <depend id="28" type="2" difference="0" hardness="Strong"/>
+            </task>
+        </task>
+        <task id="27" name="Tests et Sécurisation" color="#8cb6ce" meeting="false" start="2025-03-26" duration="6" complete="0" thirdDate="2025-02-12" thirdDate-constraint="0" expand="true">
+            <task id="28" name="Tests unitaires" color="#8cb6ce" meeting="false" start="2025-03-26" duration="1" complete="0" thirdDate="2025-02-12" thirdDate-constraint="0" expand="true">
+                <depend id="29" type="2" difference="0" hardness="Strong"/>
+            </task>
+            <task id="29" name="sécurité des smart contracts" color="#8cb6ce" meeting="false" start="2025-03-27" duration="5" complete="0" thirdDate="2025-02-12" thirdDate-constraint="0" expand="true">
+                <depend id="30" type="2" difference="0" hardness="Strong"/>
+            </task>
+        </task>
+        <task id="30" name="Déploiement" color="#8cb6ce" meeting="true" start="2025-04-03" duration="0" complete="0" thirdDate="2025-02-12" thirdDate-constraint="0" expand="true"/>
+    </tasks>
+    <resources/>
+    <allocations/>
+    <vacations/>
+    <previous/>
+    <roles roleset-name="Default"/>
+</project>
