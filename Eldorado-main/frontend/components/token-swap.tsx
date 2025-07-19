@@ -2,12 +2,10 @@
 
 import { useState } from "react"
 import { ArrowLeft, ArrowUpDown, Settings, Info } from "lucide-react"
+import { useRouter } from "next/navigation"
 
-interface TokenSwapProps {
-  onBack: () => void
-}
-
-export function TokenSwap({ onBack }: TokenSwapProps) {
+export function TokenSwap() {
+  const router = useRouter()
   const [fromToken, setFromToken] = useState("ETH")
   const [toToken, setToToken] = useState("ELDORADO")
   const [fromAmount, setFromAmount] = useState("")
@@ -104,7 +102,7 @@ const UsdtIcon = () => (
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center mb-8">
           <button
-            onClick={onBack}
+            onClick={() => router.push('/dashboard')}
             className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />

@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Zap, Target, Spade, TrendingUp, TrendingDown } from "lucide-react"
+import AnimatedNumber from "@/components/ui/animated-number"
 
-interface DashboardProps {
-  onNavigate: (view: string) => void
-}
+import { useRouter } from "next/navigation"
 
-export function Dashboard({ onNavigate }: DashboardProps) {
+export function Dashboard() {
+  const router = useRouter()
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
 
   const games = [
@@ -37,11 +37,44 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     },
   ]
 
+  const [ethBalance, setEthBalance] = useState(0)
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        if (typeof window !== "undefined" && (window as any).ethereum) {
+          const accounts = await (window as any).ethereum.request({ method: "eth_accounts" })
+          if (accounts.length > 0) {
+            const balHex = await (window as any).ethereum.request({
+              method: "eth_getBalance",
+              params: [accounts[0], "latest"],
+            })
+            const bal = parseInt(balHex, 16) / 1e18
+            setEthBalance(parseFloat(bal.toFixed(4)))
+          } else {
+            setEthBalance(0)
+          }
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    fetchBalance()
+
+    if (typeof window !== "undefined" && (window as any).ethereum) {
+      ;(window as any).ethereum.on("accountsChanged", fetchBalance)
+      return () => {
+        ;(window as any).ethereum.removeListener("accountsChanged", fetchBalance)
+      }
+    }
+  }, [])
+
   const stats = [
-    { label: "Total Wins", value: "1,247 ETH", change: "-12.5%" },
-    { label: "Games Played", value: "8,432", change: "+8.2%" },
-    { label: "Win Rate", value: "67.3%", change: "+2.1%" },
-    { label: "Eldorado Tokens", value: "15,678", change: "15.7%" },
+    { label: "ETH Balance", value: ethBalance, suffix: " ETH", change: "" },
+    { label: "Total Wins", value: 1247, suffix: " ETH", change: "-12.5%" },
+    { label: "Games Played", value: 8432, suffix: "", change: "+8.2%" },
+    { label: "Win Rate", value: 67.3, suffix: "%", change: "+2.1%" },
   ]
 
   return (
@@ -82,7 +115,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 {/* <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-green-400" />
                 <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" /> */}
               </div>
-              <div className="text-base sm:text-2xl font-bold text-white mb-0 sm:mb-1">{stat.value}</div>
+              <div className="text-base sm:text-2xl font-bold text-white mb-0 sm:mb-1">
+                <AnimatedNumber value={stat.value} decimals={stat.suffix === ' ETH' ? 4 : stat.suffix === '%' ? 1 : 0} />{stat.suffix}
+              </div>
               <div
                 className={`${
                   parseFloat(stat.change) < 0 ? 'text-red-400' : 'text-green-400'
@@ -102,7 +137,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               className="group cursor-pointer"
               onMouseEnter={() => setHoveredCard(game.id)}
               onMouseLeave={() => setHoveredCard(null)}
-              onClick={() => onNavigate(game.id)}
+              onClick={() => {
+                const path =
+                  game.id === 'roulette'
+                    ? '/spin'
+                    : `/${game.id}`
+                router.push(path)
+              }}
             >
               <div
                 className={`relative backdrop-blur-xl bg-black/20 border border-pink-500/20 rounded-3xl p-6 sm:p-8 transition-all duration-500 transform ${
