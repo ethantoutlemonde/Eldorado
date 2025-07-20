@@ -21,5 +21,15 @@ class AdminUserSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        DB::table('users')->insert([
+            'id' => '0x19a762e00dd1f5f0fcc308782b9ad2a7b127df93', // Adresse Ethereum unique
+            'nom' => 'G',
+            'prenom' => 'Ethan',
+            'date_naissance' => '2005-01-01',
+            'statut' => 'admin',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }
