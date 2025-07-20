@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "./auth-context"
 
 const suits = ["♠", "♥", "♦", "♣"]
 const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
@@ -44,6 +45,45 @@ export function BlackjackTable() {
   const [player, setPlayer] = useState<string[]>([])
   const [dealer, setDealer] = useState<string[]>([])
   const [revealed, setRevealed] = useState(false)
+  const [balance, setBalance] = useState(1000)
+  const [bet, setBet] = useState(50)
+  const [totalWins, setTotalWins] = useState(0)
+  const { user } = useAuth()
+
+  useEffect(() => {
+    if (user) {
+      const stored = localStorage.getItem(`wins_${user.id}_bj`)
+      if (stored) {
+        const val = parseFloat(stored)
+        if (!isNaN(val)) setTotalWins(val)
+      }
+    }
+  }, [user])
+
+  const determineResult = (pv: number, dv: number) => {
+    if (pv > 21) return "Dealer wins"
+    if (dv > 21) return "Player wins"
+    if (pv > dv) return "Player wins"
+    if (dv > pv) return "Dealer wins"
+    return "Push"
+  }
+
+  const handlePayout = (res: string, pv: number) => {
+    if (res === "Player wins") {
+      let win = bet * 2
+      if (pv === 21 && player.length === 2) win = bet * 2.5
+      const profit = win - bet
+      setBalance((b) => b + win)
+      if (profit > 0 && user) {
+        const prev = parseFloat(localStorage.getItem(`wins_${user.id}_bj`) || '0')
+        const newTotal = prev + profit
+        localStorage.setItem(`wins_${user.id}_bj`, newTotal.toString())
+        setTotalWins(newTotal)
+      }
+    } else if (res === "Push") {
+      setBalance((b) => b + bet)
+    }
+  }
 
   const newDeck = () =>
     shuffle(
@@ -51,6 +91,8 @@ export function BlackjackTable() {
     )
 
   const startGame = () => {
+    if (balance < bet || player.length > 0) return
+    setBalance((b) => b - bet)
     const d = newDeck()
     setDeck(d.slice(4))
     setPlayer([d[0], d[2]])
@@ -63,7 +105,13 @@ export function BlackjackTable() {
     setPlayer((p) => {
       const [c, ...rest] = deck
       setDeck(rest)
-      return [...p, c]
+      const newHand = [...p, c]
+      if (handValue(newHand) > 21) {
+        setRevealed(true)
+        const res = determineResult(handValue(newHand), handValue(dealer))
+        handlePayout(res, handValue(newHand))
+      }
+      return newHand
     })
   }
 
@@ -78,6 +126,8 @@ export function BlackjackTable() {
     setDealer(d)
     setDeck(remaining)
     setRevealed(true)
+    const res = determineResult(handValue(player), handValue(d))
+    handlePayout(res, handValue(player))
   }
 
   const reset = () => {
@@ -100,7 +150,7 @@ export function BlackjackTable() {
 
   return (
     <div className="pt-24 pb-8 px-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="flex items-center mb-8">
           <button
             onClick={() => router.push('/dashboard')}
@@ -115,10 +165,29 @@ export function BlackjackTable() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-violet-400 bg-clip-text text-transparent mb-4">
             Blackjack
           </h1>
+          <div className="flex justify-center space-x-8 text-gray-200 text-sm">
+            <div>Balance: {balance}</div>
+            <div>Total Wins: {totalWins}</div>
+          </div>
         </div>
 
         {player.length === 0 ? (
-          <div className="text-center">
+          <div className="text-center space-y-4">
+            <div className="flex justify-center items-center space-x-4">
+              <button
+                onClick={() => setBet((b) => Math.max(10, b - 10))}
+                className="px-3 py-1 rounded bg-gray-600 text-white"
+              >
+                -10
+              </button>
+              <div className="text-gray-200">Bet: {bet}</div>
+              <button
+                onClick={() => setBet((b) => b + 10)}
+                className="px-3 py-1 rounded bg-gray-600 text-white"
+              >
+                +10
+              </button>
+            </div>
             <button
               onClick={startGame}
               className="px-6 py-3 rounded-xl font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-all"
@@ -128,10 +197,14 @@ export function BlackjackTable() {
           </div>
         ) : (
           <div className="space-y-6">
+            <div className="flex justify-center space-x-8 text-gray-200">
+              <div>Bet: {bet}</div>
+              <div>Balance: {balance}</div>
+            </div>
             <div className="flex flex-col items-center space-y-2">
               <div className="flex space-x-2">
                 {dealer.map((c, i) => (
-                  <div key={i} className="w-12 h-16 bg-white rounded shadow flex items-center justify-center text-lg border border-gray-300">
+                  <div key={i} className="w-16 h-24 bg-white rounded shadow flex items-center justify-center text-xl border border-gray-300">
                     {revealed || i === 0 ? c : '🂠'}
                   </div>
                 ))}
@@ -142,7 +215,7 @@ export function BlackjackTable() {
             <div className="flex flex-col items-center space-y-2">
               <div className="flex space-x-2">
                 {player.map((c, i) => (
-                  <div key={i} className="w-12 h-16 bg-white rounded shadow flex items-center justify-center text-lg border border-gray-300">
+                  <div key={i} className="w-16 h-24 bg-white rounded shadow flex items-center justify-center text-xl border border-gray-300">
                     {c}
                   </div>
                 ))}
