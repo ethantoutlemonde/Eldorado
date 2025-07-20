@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { ArrowLeft, Wallet, Shield, Zap, Copy, ExternalLink } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "./auth-context"
+import { ethers } from "ethers"
 
 
 interface WalletConnectProps {
@@ -23,6 +24,7 @@ export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
   const [succes, setsucces] = useState<string>("")
   const [isUserRegistered, setIsUserRegistered] = useState(true)
   const allowedExtensions = ["pdf", "jpg", "jpeg", "png"]
+  const [network, setNetwork] = useState<{ name: string }>({ name: "Not detected" })
 
 
   useEffect(() => {
@@ -218,26 +220,26 @@ export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
       description: "Connect using browser extension",
       popular: true,
     },
-    {
-      name: "WalletConnect",
-      icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 350 350" width="32" height="32"><circle cx="175" cy="175" r="175" fill="#0888f0" transform="matrix(-1 0 0 1 350 0)"></circle><path fill="#fff" d="m229.916 160.179 20.601-20.474c-46.561-46.274-104.416-46.274-150.977 0l20.601 20.474c35.411-35.193 74.388-35.193 109.799 0h-.024Z"></path><path fill="#fff" d="m223.045 207.88-48.044-47.748-48.045 47.748-48.045-47.748-20.577 20.45 68.622 68.222 48.045-47.748 48.044 47.748 68.622-68.222-20.577-20.45-48.045 47.748Z"></path></svg>,
-      description: "Scan with mobile wallet",
-      popular: true,
-    },
-    {
-      name: "Coinbase Wallet",
-      icon: <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="38" height="38" viewBox="0 0 48 48">
-<circle cx="24" cy="24" r="20" fill="#2962ff"></circle><path fill="#fff" d="M24,31c-3.86,0-7-3.14-7-7s3.14-7,7-7c3.52,0,6.44,2.61,6.92,6h7.04C37.45,15.74,31.38,10,24,10	c-7.72,0-14,6.28-14,14c0,7.72,6.28,14,14,14c7.38,0,13.45-5.74,13.96-13h-7.04C30.44,28.39,27.52,31,24,31z"></path>
-</svg>,
-      description: "Connect with Coinbase",
-      popular: false,
-    },
-    {
-      name: "Trust Wallet",
-      icon: <svg width="30" height="34" viewBox="0 0 39 43" fill="none" xmlns="http://www.w3.org/2000/svg" exponent="342423"><path d="M0.710815 6.67346L19.4317 0.606445V42.6064C6.05944 37.0059 0.710815 26.2727 0.710815 20.207V6.67346Z" fill="#0500FF"></path><path d="M38.1537 6.67346L19.4329 0.606445V42.6064C32.8051 37.0059 38.1537 26.2727 38.1537 20.207V6.67346Z" fill="url(#paint0_linear_524_75868342423)"></path><defs><linearGradient id="paint0_linear_524_75868342423" x1="33.1809" y1="-2.33467" x2="19.115" y2="42.0564" gradientUnits="userSpaceOnUse"><stop offset="0.02" stop-color="#0000FF"></stop><stop offset="0.08" stop-color="#0094FF"></stop><stop offset="0.16" stop-color="#48FF91"></stop><stop offset="0.42" stop-color="#0094FF"></stop><stop offset="0.68" stop-color="#0038FF"></stop><stop offset="0.9" stop-color="#0500FF"></stop></linearGradient></defs></svg>,
-      description: "Mobile-first wallet",
-      popular: false,
-    },
+    // {
+    //   name: "WalletConnect",
+    //   icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 350 350" width="32" height="32"><circle cx="175" cy="175" r="175" fill="#0888f0" transform="matrix(-1 0 0 1 350 0)"></circle><path fill="#fff" d="m229.916 160.179 20.601-20.474c-46.561-46.274-104.416-46.274-150.977 0l20.601 20.474c35.411-35.193 74.388-35.193 109.799 0h-.024Z"></path><path fill="#fff" d="m223.045 207.88-48.044-47.748-48.045 47.748-48.045-47.748-20.577 20.45 68.622 68.222 48.045-47.748 48.044 47.748 68.622-68.222-20.577-20.45-48.045 47.748Z"></path></svg>,
+    //   description: "Scan with mobile wallet",
+    //   popular: true,
+    // },
+//     {
+//       name: "Coinbase Wallet",
+//       icon: <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="38" height="38" viewBox="0 0 48 48">
+// <circle cx="24" cy="24" r="20" fill="#2962ff"></circle><path fill="#fff" d="M24,31c-3.86,0-7-3.14-7-7s3.14-7,7-7c3.52,0,6.44,2.61,6.92,6h7.04C37.45,15.74,31.38,10,24,10	c-7.72,0-14,6.28-14,14c0,7.72,6.28,14,14,14c7.38,0,13.45-5.74,13.96-13h-7.04C30.44,28.39,27.52,31,24,31z"></path>
+// </svg>,
+//       description: "Connect with Coinbase",
+//       popular: false,
+//     },
+//     {
+//       name: "Trust Wallet",
+//       icon: <svg width="30" height="34" viewBox="0 0 39 43" fill="none" xmlns="http://www.w3.org/2000/svg" exponent="342423"><path d="M0.710815 6.67346L19.4317 0.606445V42.6064C6.05944 37.0059 0.710815 26.2727 0.710815 20.207V6.67346Z" fill="#0500FF"></path><path d="M38.1537 6.67346L19.4329 0.606445V42.6064C32.8051 37.0059 38.1537 26.2727 38.1537 20.207V6.67346Z" fill="url(#paint0_linear_524_75868342423)"></path><defs><linearGradient id="paint0_linear_524_75868342423" x1="33.1809" y1="-2.33467" x2="19.115" y2="42.0564" gradientUnits="userSpaceOnUse"><stop offset="0.02" stop-color="#0000FF"></stop><stop offset="0.08" stop-color="#0094FF"></stop><stop offset="0.16" stop-color="#48FF91"></stop><stop offset="0.42" stop-color="#0094FF"></stop><stop offset="0.68" stop-color="#0038FF"></stop><stop offset="0.9" stop-color="#0500FF"></stop></linearGradient></defs></svg>,
+//       description: "Mobile-first wallet",
+//       popular: false,
+//     },
   ]
 
   const handleConnect = async (walletName: string) => {
@@ -255,6 +257,9 @@ export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
           setWalletAddress(accounts[0]) // <-- ici on stocke l'adresse
           setIsConnected(true)
           await isuserRegistered(accounts[0]) // Vérifie si l'utilisateur est enregistré
+
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          setNetwork(await provider.getNetwork());
         } else {
           setError("No wallet address found.")
         }
@@ -280,6 +285,7 @@ export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
     setSelectedWallet(null)
     setError("")
     logout()
+    router.push('/dashboard')
   }
 
   const copyAddress = async () => {
@@ -447,7 +453,7 @@ export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
                     <label className="text-gray-400 text-sm">Network</label>
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
-                      <span className="text-white font-semibold">Ethereum Mainnet</span>
+                      <span className="text-white font-semibold">{network.name}</span>
                     </div>
                   </div>
                 </div>
@@ -494,7 +500,7 @@ export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
               <p className="text-gray-400 text-sm">Transfer funds out</p>
             </button>
 
-            <button className="backdrop-blur-xl bg-black/20 border border-pink-500/20 rounded-2xl p-6 hover:border-pink-500/40 transition-all duration-300 text-left">
+            <button onClick={() => router.push('/profile')} className="backdrop-blur-xl bg-black/20 border border-pink-500/20 rounded-2xl p-6 hover:border-pink-500/40 transition-all duration-300 text-left">
               <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
                 <Shield className="w-6 h-6 text-white" />
               </div>
@@ -504,14 +510,14 @@ export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
           </div>
 
           {/* Disconnect Button */}
-          <div className="text-center">
+          {/* <div className="text-center">
             <button
               onClick={handleDisconnect}
               className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-colors"
             >
               Disconnect Wallet
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
     )
@@ -556,7 +562,9 @@ export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
         )}
 
         {/* Wallet Options */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className={`grid gap-6 ${
+          wallets.length < 2 ? 'grid-cols-1' : 'grid-cols-2'
+        }`}>
           {wallets.map((wallet) => (
             <button
               key={wallet.name}
@@ -565,7 +573,7 @@ export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
               className="backdrop-blur-xl bg-black/20 border border-pink-500/20 rounded-3xl p-6 hover:border-pink-500/40 transition-all duration-300 text-left disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               <div className="flex items-center space-x-1">
-                <div className="text-4xl">{wallet.icon}</div>
+                <div className="text-4xl mr-6">{wallet.icon}</div>
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
                     <h3 className="text-xl font-bold text-white">{wallet.name}</h3>

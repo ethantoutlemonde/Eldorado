@@ -39,8 +39,7 @@ export function Navigation() {
   const navItems = [
     { href: "/dashboard", icon: Home, label: "Dashboard" },
     { href: "/wallet", icon: CreditCard, label: "Wallet" },
-    { href: "/swap", icon: ArrowLeftRight, label: "Swap" },
-    { href: "/profile", icon: User, label: "Profile" },
+    { href: "/swap", icon: ArrowLeftRight, label: "Swap" }
   ]
 
   return (
