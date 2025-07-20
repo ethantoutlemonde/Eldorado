@@ -6,9 +6,11 @@ import { ArrowLeft, Play, Volume2, VolumeX, Plus, Minus, Settings, HelpCircle, A
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
+import { useAuth } from "./auth-context"
 
 export function SlotMachine() {
   const router = useRouter()
+  const { user } = useAuth()
   // Game state
   const [reels, setReels] = useState([0, 0, 0])
   const [visibleSymbols, setVisibleSymbols] = useState([
@@ -34,6 +36,16 @@ export function SlotMachine() {
   const [freeSpins, setFreeSpins] = useState(0)
   const [multiplier, setMultiplier] = useState(1)
   const [theme, setTheme] = useState<"luxury" | "neon" | "classic">("luxury")
+
+  useEffect(() => {
+    if (user) {
+      const stored = localStorage.getItem(`wins_${user.id}`)
+      if (stored) {
+        const val = parseFloat(stored)
+        if (!isNaN(val)) setTotalWin(val)
+      }
+    }
+  }, [user])
 
   // References for animations
   const machineRef = useRef<HTMLDivElement>(null)
@@ -391,7 +403,13 @@ export function SlotMachine() {
     // Update win state
     if (totalWinAmount > 0) {
       setLastWin(totalWinAmount)
-      setTotalWin((prev) => prev + totalWinAmount)
+      setTotalWin((prev) => {
+        const newTotal = prev + totalWinAmount
+        if (user) {
+          localStorage.setItem(`wins_${user.id}`, newTotal.toString())
+        }
+        return newTotal
+      })
       setBalance((prev) => prev + totalWinAmount)
       setWinLines(winningLines)
       setShowWinAnimation(true)
