@@ -1,12 +1,19 @@
 "use client"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/navigation";
-import RequireAuth from "@/components/require-auth";
 import { useAuth } from "@/components/auth-context";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const { user, logout, login } = useAuth();
   const [message, setMessage] = useState("");
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user) {
+      router.replace("/login");
+    }
+  }, [user, router]);
 
   if (!user) return null;
 
@@ -41,7 +48,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <RequireAuth>
+    <>
       <Navigation />
       <div className="pt-24 pb-8 px-4">
         <div className="max-w-2xl mx-auto space-y-6">
@@ -67,6 +74,6 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-    </RequireAuth>
+    </>
   );
 }
