@@ -6,7 +6,11 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "./auth-context"
 
 
-export function WalletConnect() {
+interface WalletConnectProps {
+  redirectOnLogin?: boolean
+}
+
+export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
   const router = useRouter()
   const { login, logout, user } = useAuth()
   const [isConnected, setIsConnected] = useState(false)
@@ -139,11 +143,15 @@ export function WalletConnect() {
       setIsUserRegistered(true)
       if (data.statut === 'verified' || data.statut === 'admin') {
         login(data)
-        router.push('/dashboard')
+        if (redirectOnLogin) {
+          router.push('/dashboard')
+        }
       } else if (data.statut === 'pending') {
         login(data)
         setError('Account pending validation')
-        router.push('/profile')
+        if (redirectOnLogin) {
+          router.push('/profile')
+        }
       } else {
         setError('Account rejected')
       }
@@ -245,7 +253,7 @@ export function WalletConnect() {
         if (accounts.length > 0) {
           setWalletAddress(accounts[0]) // <-- ici on stocke l'adresse
           setIsConnected(true)
-          isuserRegistered(accounts[0]) // Vérifie si l'utilisateur est enregistré
+          await isuserRegistered(accounts[0]) // Vérifie si l'utilisateur est enregistré
         } else {
           setError("No wallet address found.")
         }
