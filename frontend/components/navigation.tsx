@@ -5,14 +5,13 @@ import { Home, Coins, CreditCard, ArrowLeftRight, User } from "lucide-react"
 import { BurgerMenu } from "./burger-menu"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useRouter } from "next/navigation"
 
-interface NavigationProps {
-  onSecretMode?: () => void
-}
-
-export function Navigation({ onSecretMode }: NavigationProps = {}) {
+export function Navigation() {
   const [secretSequence, setSecretSequence] = useState("")
   const pathname = usePathname()
+
+  const router = useRouter()
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -23,7 +22,7 @@ export function Navigation({ onSecretMode }: NavigationProps = {}) {
         setSecretSequence(newSequence)
 
         if (newSequence === "STRIP") {
-          onSecretMode()
+          router.push("/secret")
           setSecretSequence("")
         } else if (newSequence.length > 5 || !"STRIP".startsWith(newSequence)) {
           setSecretSequence("")
@@ -35,7 +34,7 @@ export function Navigation({ onSecretMode }: NavigationProps = {}) {
 
     window.addEventListener("keydown", handleKeyPress)
     return () => window.removeEventListener("keydown", handleKeyPress)
-  }, [secretSequence, onSecretMode])
+  }, [secretSequence])
 
   const navItems = [
     { href: "/dashboard", icon: Home, label: "Dashboard" },
@@ -52,7 +51,7 @@ export function Navigation({ onSecretMode }: NavigationProps = {}) {
             <div className="flex items-center space-x-2">
               {/* Burger Menu for Mobile */}
               <div className="md:hidden mr-2">
-                <BurgerMenu onSecretMode={onSecretMode} />
+                <BurgerMenu/>
               </div>
 
               {/* <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-violet-500 rounded-xl flex items-center justify-center">

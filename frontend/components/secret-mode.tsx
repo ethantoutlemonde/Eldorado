@@ -7,11 +7,8 @@ import {
   Zap, Target, Spade
 } from "lucide-react"
 
-interface SecretModeProps {
-  onExit: () => void
-}
 
-export function SecretMode({ onExit }: SecretModeProps) {
+export function SecretMode() {
   const [stage, setStage] = useState(0)
   const [showKey, setShowKey] = useState(false)
   const [revealedParts, setRevealedParts] = useState(0)
@@ -113,7 +110,7 @@ export function SecretMode({ onExit }: SecretModeProps) {
 
       {/* Exit button */}
       <button
-        onClick={onExit}
+        onClick={() => router.push("/dashboard")}
         className="absolute top-4 right-4 z-[9999] p-2 bg-red-600/20 hover:bg-red-600/40 rounded-lg transition-colors pointer-events-auto"
       >
         <X className="w-6 h-6 text-red-400" />
