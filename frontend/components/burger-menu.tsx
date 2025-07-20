@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Menu, X, Home, Zap, Target, Spade, CreditCard, ArrowLeftRight, Lock } from "lucide-react"
+import { Menu, X, Home, Zap, Target, Spade, CreditCard, ArrowLeftRight, Lock, User } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -46,6 +46,7 @@ export function BurgerMenu({ onSecretMode }: BurgerMenuProps = {}) {
     { href: "/poker", label: "Poker", icon: Spade },
     { href: "/wallet", label: "Wallet", icon: CreditCard },
     { href: "/swap", label: "Token Swap", icon: ArrowLeftRight },
+    { href: "/profile", label: "Profile", icon: User },
     { href: "/secret", label: "Strip Mode", icon: Lock, action: onSecretMode },
   ]
 
