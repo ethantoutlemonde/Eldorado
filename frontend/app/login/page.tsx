@@ -9,8 +9,12 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (user && (user.statut === "verified" || user.statut === "admin")) {
-      router.replace("/dashboard");
+    if (user) {
+      if (user.statut === "verified" || user.statut === "admin") {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/profile");
+      }
     }
   }, [user, router]);
 
