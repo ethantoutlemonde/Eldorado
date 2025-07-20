@@ -8,6 +8,7 @@ export default function ProfilePage() {
   const { user, logout, login } = useAuth();
   const [message, setMessage] = useState("");
   const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   useEffect(() => {
     if (!user) {
@@ -20,7 +21,7 @@ export default function ProfilePage() {
   const handleDelete = async () => {
     if (!confirm("Delete your account?")) return;
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/users/${user.id}`, {
+      const res = await fetch(`${API_URL}/api/users/${user.id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("failed");
@@ -33,7 +34,7 @@ export default function ProfilePage() {
   const handleSelfExclude = async () => {
     if (!confirm("Self exclude this account?")) return;
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/users/${user.id}`, {
+      const res = await fetch(`${API_URL}/api/users/${user.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ statut: "banned" }),
