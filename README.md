@@ -103,10 +103,10 @@ Eldorado/
 | 📄 Documentation     | **10%** |
 
 ### 🎁 Bonus (optionnels)
-- Ajout d’autres jeux de casino (**Blackjack, Poker**).
+- Ajout d’autres jeux de casino (**Blackjack**).
 - Intégration de **Chainlink Price Feeds** pour ajuster les paiements en stablecoins.
 - Création d’un **token de fidélité** pour récompenser les joueurs.
-- **Système de révélation de clé privée** en cas de pertes au poker, avec un **bonus quadruplé**.
+- **Système de révélation de clé privée** en cas de pertes au blackjack, avec un **bonus quadruplé**.
 
 ---
 

@@ -29,12 +29,12 @@ export function Dashboard() {
       description: "European roulette with live results",
     },
     {
-      id: "poker",
-      title: "Hologram Poker",
-      subtitle: "Texas Hold'em",
+      id: "blackjack",
+      title: "Cyber Blackjack",
+      subtitle: "21 or Bust",
       icon: Spade,
       gradient: "from-purple-500 to-fuchsia-400",
-      description: "Multi-player poker table",
+      description: "Fast-paced blackjack action",
     },
   ]
 

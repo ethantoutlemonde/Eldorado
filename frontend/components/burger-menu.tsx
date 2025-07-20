@@ -43,7 +43,7 @@ export function BurgerMenu({ onSecretMode }: BurgerMenuProps = {}) {
     { href: "/dashboard", label: "Home", icon: Home },
     { href: "/slots", label: "Slots", icon: Zap },
     { href: "/spin", label: "Roulette", icon: Target },
-    { href: "/poker", label: "Poker", icon: Spade },
+    { href: "/blackjack", label: "Blackjack", icon: Spade },
     { href: "/wallet", label: "Wallet", icon: CreditCard },
     { href: "/swap", label: "Token Swap", icon: ArrowLeftRight },
     { href: "/profile", label: "Profile", icon: User },
