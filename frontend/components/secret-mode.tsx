@@ -45,12 +45,12 @@ export function SecretMode({ onExit }: SecretModeProps) {
       description: "European roulette with live results",
     },
     {
-      id: "poker",
-      title: "Strip Poker",
-      subtitle: "Texas Hold'em",
+      id: "blackjack",
+      title: "Strip Blackjack",
+      subtitle: "Beat the Dealer",
       icon: Spade,
       gradient: "from-green-500 to-vert-500",
-      description: "Multi-player poker table",
+      description: "Try your luck at 21",
     },
   ]
 
