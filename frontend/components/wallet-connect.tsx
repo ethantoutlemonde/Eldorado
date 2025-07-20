@@ -141,7 +141,9 @@ export function WalletConnect() {
         login(data)
         router.push('/dashboard')
       } else if (data.statut === 'pending') {
+        login(data)
         setError('Account pending validation')
+        router.push('/profile')
       } else {
         setError('Account rejected')
       }
