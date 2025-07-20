@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Home, Coins, CreditCard, ArrowLeftRight } from "lucide-react"
+import { Home, Coins, CreditCard, ArrowLeftRight, User } from "lucide-react"
 import { BurgerMenu } from "./burger-menu"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -41,6 +41,7 @@ export function Navigation({ onSecretMode }: NavigationProps = {}) {
     { href: "/dashboard", icon: Home, label: "Dashboard" },
     { href: "/wallet", icon: CreditCard, label: "Wallet" },
     { href: "/swap", icon: ArrowLeftRight, label: "Swap" },
+    { href: "/profile", icon: User, label: "Profile" },
   ]
 
   return (

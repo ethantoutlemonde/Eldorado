@@ -140,8 +140,10 @@ export function WalletConnect() {
       if (data.statut === 'verified' || data.statut === 'admin') {
         login(data)
         router.push('/dashboard')
-      } else {
+      } else if (data.statut === 'pending') {
         setError('Account pending validation')
+      } else {
+        setError('Account rejected')
       }
     } catch (err) {
       console.log('No wallet connected')
