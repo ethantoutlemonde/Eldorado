@@ -1,8 +1,18 @@
 // src/constants/addresses.ts
-export const CONTRACT_ADDRESSES = {
-  Swap: "0xe1DA8919f262Ee86f9BE05059C9280142CF23f48",
-  ELD: "0xe1Aa25618fA0c7A1CFDab5d6B456af611873b629",
-  USDC: "0x700b6A60ce7EaaEA56F065753d8dcB9653dbAD35",
-  USDT: "0xA15BB66138824a1c7167f5E85b957d04Dd34E468",
-  WETH: "0xb19b36b1456E65E3A6D514D3F715f204BD59f431"
-}
+// Les adresses des contrats sont générées lors du déploiement
+// et copiées dans le dossier `public` du frontend.
+// On importe donc le fichier JSON pour récupérer dynamiquement
+// les adresses selon l'environnement (Anvil, Sepolia, etc.).
+
+import deployed from "../public/deployedAddresses.json";
+
+export const CONTRACT_ADDRESSES = deployed as {
+  Swap: string;
+  EldoradoToken: string;
+  USDC: string;
+  USDT: string;
+  WETH: string;
+};
+
+// Compatibilité avec les anciens noms
+export const ELD = (deployed as any).EldoradoToken as string;

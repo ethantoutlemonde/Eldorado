@@ -11,6 +11,7 @@ interface WalletConnectProps {
 }
 
 export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   const router = useRouter()
   const { login, logout, user } = useAuth()
   const [isConnected, setIsConnected] = useState(false)
@@ -97,7 +98,7 @@ export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
           formData.append('piece_identite', form.idCard);
           }
 
-          const res = await fetch('http://127.0.0.1:8000/api/users', {
+          const res = await fetch(`${API_URL}/api/users`, {
             method: 'POST',
             body: formData, // Pas besoin de content-type, le navigateur gère ça
           })
@@ -130,7 +131,7 @@ export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
 
   const isuserRegistered = async (address: string) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/users/' + address, {
+      const response = await fetch(`${API_URL}/api/users/` + address, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
