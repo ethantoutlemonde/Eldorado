@@ -5,6 +5,7 @@ import { Zap, Target, Spade, TrendingUp, TrendingDown } from "lucide-react"
 import AnimatedNumber from "@/components/ui/animated-number"
 
 import { useRouter } from "next/navigation"
+import { useAuth } from "./auth-context"
 
 export function Dashboard() {
   const router = useRouter()
@@ -38,6 +39,8 @@ export function Dashboard() {
   ]
 
   const [ethBalance, setEthBalance] = useState(0)
+  const [totalWins, setTotalWins] = useState(0)
+  const { user } = useAuth()
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -70,9 +73,21 @@ export function Dashboard() {
     }
   }, [])
 
+  useEffect(() => {
+    if (user) {
+      const stored = localStorage.getItem(`wins_${user.id}`)
+      if (stored) {
+        const val = parseFloat(stored)
+        if (!isNaN(val)) setTotalWins(val)
+      } else {
+        setTotalWins(0)
+      }
+    }
+  }, [user])
+
   const stats = [
     { label: "ETH Balance", value: ethBalance, suffix: " ETH", change: "" },
-    { label: "Total Wins", value: 1247, suffix: " ETH", change: "-12.5%" },
+    { label: "Total Wins", value: totalWins, suffix: " ETH", change: "" },
     { label: "Games Played", value: 8432, suffix: "", change: "+8.2%" },
     { label: "Win Rate", value: 67.3, suffix: "%", change: "+2.1%" },
   ]

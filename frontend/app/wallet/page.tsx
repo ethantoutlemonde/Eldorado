@@ -6,7 +6,7 @@ export default function WalletPage() {
   return (
     <>
       <Navigation />
-      <WalletConnect />
+      <WalletConnect redirectOnLogin={false} />
     </>
   );
 }

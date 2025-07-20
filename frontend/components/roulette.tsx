@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ArrowLeft, ExternalLink, Copy, CheckCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "./auth-context"
 
 // Types pour la blockchain
 interface WalletState {
@@ -21,9 +22,11 @@ interface GameState {
 
 export function Roulette() {
   const router = useRouter()
+  const { user } = useAuth()
   const [isSpinning, setIsSpinning] = useState(false)
   const [currentNumber, setCurrentNumber] = useState(0)
   const [balance, setBalance] = useState(1000)
+  const [totalWins, setTotalWins] = useState(0)
   const [bets, setBets] = useState<{ [key: string]: number }>({})
   const [recentResults, setRecentResults] = useState([7, 23, 14, 31, 9])
   const [rotation, setRotation] = useState(0)
@@ -50,6 +53,16 @@ export function Roulette() {
     chainId: null,
     balance: "0",
   })
+
+  useEffect(() => {
+    if (user) {
+      const stored = localStorage.getItem(`wins_${user.id}`)
+      if (stored) {
+        const val = parseFloat(stored)
+        if (!isNaN(val)) setTotalWins(val)
+      }
+    }
+  }, [user])
 
   // European roulette wheel sequence (correct order)
   const numbers = [
@@ -331,6 +344,12 @@ export function Roulette() {
         const profit = totalWin - totalBet
 
         if (profit > 0) {
+          if (user) {
+            const prev = parseFloat(localStorage.getItem(`wins_${user.id}`) || '0')
+            const newTotal = prev + profit
+            localStorage.setItem(`wins_${user.id}`, newTotal.toString())
+            setTotalWins(newTotal)
+          }
           let message = ""
           if (profit > 100) {
             message = "🎉 Big Win!"
