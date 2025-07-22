@@ -307,10 +307,25 @@ export function Roulette() {
         await spinTx.wait()
 
         try {
-          const rnd: bigint = await eldoradoContract.getRandomNumber()
-          winningNumber = Number(rnd % 37n)
+          const eventNumber: bigint = await new Promise<bigint>((resolve, reject) => {
+            const handler = (num: bigint) => {
+              clearTimeout(timer)
+              resolve(num)
+            }
+            const timer = setTimeout(() => {
+              eldoradoContract.off("SpinResult", handler)
+              reject(new Error("SpinResult timeout"))
+            }, 60000)
+            eldoradoContract.once("SpinResult", handler)
+          })
+          winningNumber = Number(eventNumber % 37n)
         } catch (err) {
-          console.error(err)
+          try {
+            const rnd: bigint = await eldoradoContract.getRandomNumber()
+            winningNumber = Number(rnd % 37n)
+          } catch (innerErr) {
+            console.error(innerErr)
+          }
         }
       } catch (err) {
         console.error(err)
@@ -416,15 +431,24 @@ export function Roulette() {
         const totalBet = Object.values(bets).reduce((sum, amount) => sum + amount, 0)
         const profit = totalWin - totalBet
 
-        if (profit > 0) {
-          if (wallet.connected && eldoradoContract) {
-            try {
-              await eldoradoContract.claimWinnings()
-              fetchBalance()
-            } catch (err) {
-              console.error(err)
+        let onChainWin = false
+        if (wallet.connected && eldoradoContract) {
+          try {
+            const currentBet: bigint = await eldoradoContract.bets(wallet.address)
+            if (currentBet > 0n) {
+              onChainWin = await eldoradoContract.checkVictory(wallet.address)
+              if (onChainWin) {
+                const claimTx = await eldoradoContract.claimWinnings()
+                await claimTx.wait()
+                fetchBalance()
+              }
             }
+          } catch (err) {
+            console.error(err)
           }
+        }
+
+        if (profit > 0) {
           if (user) {
             const prev = parseFloat(localStorage.getItem(`wins_${user.id}`) || '0')
             const newTotal = prev + profit
