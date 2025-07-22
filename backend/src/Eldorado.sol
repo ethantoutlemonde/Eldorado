@@ -45,7 +45,7 @@ contract Eldorado is VRFConsumerBase, ReentrancyGuard {
     }
 
     function fulfillRandomness(bytes32, uint256 randomness) internal override {
-        lastRandomNumber = randomness;
+        lastRandomNumber = randomness % 37;
         hasRandomNumber = true;
         emit SpinResult(lastRandomNumber);
     }
