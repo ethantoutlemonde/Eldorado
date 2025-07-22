@@ -442,6 +442,7 @@ export function Roulette() {
                 await claimTx.wait()
                 fetchBalance()
               }
+
             }
           } catch (err) {
             console.error(err)
