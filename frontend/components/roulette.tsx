@@ -4,8 +4,10 @@ import { useState, useEffect } from "react"
 import { ArrowLeft, ExternalLink, Copy, CheckCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "./auth-context"
-import { ethers } from "ethers"
+import { ethers, parseUnits } from "ethers"
 import ELD_ABI from "../abis/erc20.json"
+import ELDORADO_ABI from "../abis/eldorado.json"
+import { ELDORADO_ADDRESS } from "../constants/addresses"
 
 // Types pour la blockchain
 interface WalletState {
@@ -55,6 +57,11 @@ export function Roulette() {
     balance: "0",
   })
 
+  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null)
+  const [signer, setSigner] = useState<ethers.Signer | null>(null)
+  const [eldoradoContract, setEldoradoContract] = useState<ethers.Contract | null>(null)
+  const [eldTokenContract, setEldTokenContract] = useState<ethers.Contract | null>(null)
+
   useEffect(() => {
     if (user) {
       const stored = localStorage.getItem(`wins_${user.id}`)
@@ -67,37 +74,73 @@ export function Roulette() {
 
   const [eldBalance, setEldBalance] = useState(0)
   const ELD_TOKEN_ADDRESS = "0xae1056bB5fd8EF47f324B39831ca8db14573014f"
+
+  const connectWallet = async () => {
+    try {
+      if (typeof window !== "undefined" && (window as any).ethereum) {
+        const prov = new ethers.BrowserProvider((window as any).ethereum)
+        await prov.send("eth_requestAccounts", [])
+        const sign = await prov.getSigner()
+        const addr = await sign.getAddress()
+        const { chainId } = await prov.getNetwork()
+        const bal = await prov.getBalance(addr)
+        setWallet({
+          connected: true,
+          address: addr,
+          chainId: Number(chainId),
+          balance: ethers.formatEther(bal),
+        })
+        setProvider(prov)
+        setSigner(sign)
+        setEldoradoContract(new ethers.Contract(ELDORADO_ADDRESS, ELDORADO_ABI, sign))
+        setEldTokenContract(new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, sign))
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const disconnectWallet = () => {
+    setWallet({ connected: false, address: null, chainId: null, balance: "0" })
+    setProvider(null)
+    setSigner(null)
+    setEldoradoContract(null)
+    setEldTokenContract(null)
+  }
   useEffect(() => {
     const fetchBalance = async () => {
       try {
-        if (typeof window !== "undefined" && (window as any).ethereum) {
+        if (wallet.connected && provider && wallet.address) {
+          const eldContract = new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, provider)
+          const rawEldBalance = await eldContract.balanceOf(wallet.address)
+          const decimals = await eldContract.decimals()
+          setEldBalance(parseFloat(ethers.formatUnits(rawEldBalance, decimals)))
+        } else if (typeof window !== "undefined" && (window as any).ethereum) {
           const accounts = await (window as any).ethereum.request({ method: "eth_accounts" })
-            const provider = new ethers.BrowserProvider((window as any).ethereum)
-            const account = accounts[0]
-  
-            // ELD balance
-            const eldContract = new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, provider)
-            const rawEldBalance = await eldContract.balanceOf(account)
+          if (accounts.length > 0) {
+            const prov = new ethers.BrowserProvider((window as any).ethereum)
+            const eldContract = new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, prov)
+            const rawEldBalance = await eldContract.balanceOf(accounts[0])
             const decimals = await eldContract.decimals()
             setEldBalance(parseFloat(ethers.formatUnits(rawEldBalance, decimals)))
-          } else {
-            setEldBalance(0)
           }
+        } else {
+          setEldBalance(0)
         }
-      catch (err) {
+      } catch (err) {
         console.error(err)
       }
     }
-  
+
     fetchBalance()
-  
+
     if (typeof window !== "undefined" && (window as any).ethereum) {
       (window as any).ethereum.on("accountsChanged", fetchBalance)
       return () => {
         (window as any).ethereum.removeListener("accountsChanged", fetchBalance)
       }
     }
-  }, [])
+  }, [wallet.connected, wallet.address, provider])
 
   const numbers = [
     0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29,
@@ -212,8 +255,43 @@ export function Roulette() {
     if (isSpinning || Object.keys(bets).length === 0) return
 
     setIsSpinning(true)
-   
-    const winningNumber = numbers[Math.floor(Math.random() * numbers.length)]   //la on recup le random du contract
+
+    let winningNumber = numbers[Math.floor(Math.random() * numbers.length)]
+
+    if (wallet.connected && signer && eldoradoContract && eldTokenContract && wallet.address) {
+      try {
+        const [betKey] = Object.keys(bets)
+        const betValue = bets[betKey]
+        const match = betKey.match(/number-(\d+)/)
+        const betType = match ? parseInt(match[1]) : 0
+        const amount = parseUnits(betValue.toString(), 18)
+
+        const allowance = await eldTokenContract.allowance(wallet.address, ELDORADO_ADDRESS)
+        if (allowance < amount) {
+          const approveTx = await eldTokenContract.approve(ELDORADO_ADDRESS, amount)
+          await approveTx.wait()
+        }
+
+        const tx = await eldoradoContract.placeBet(betType, amount)
+        setLastTransactionHash(tx.hash)
+        const receipt = await tx.wait()
+        setGameState({ gameId: "", status: "spinning", transactionHash: tx.hash, blockNumber: receipt.blockNumber })
+        setShowTransactionModal(true)
+
+        const spinTx = await eldoradoContract.spinRoulette()
+        await spinTx.wait()
+
+        try {
+          const rnd: bigint = await eldoradoContract.getRandomNumber()
+          winningNumber = Number(rnd % 37n)
+        } catch (err) {
+          console.error(err)
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
     const winningIndex = numbers.indexOf(winningNumber)
 
     const spinDuration = 5000
@@ -426,8 +504,25 @@ export function Roulette() {
                 <div className="text-2xl font-bold text-white">
                   {eldBalance} {wallet.connected ? "tokens" : "ELD"}
                 </div>
-                <div className="text-sm text-gray-400 mt-2">
+              <div className="text-sm text-gray-400 mt-2">
                   Total Bet: {totalBetAmount} {wallet.connected ? "tokens" : "ELD"}
+                </div>
+                <div className="mt-4">
+                  {wallet.connected ? (
+                    <button
+                      onClick={disconnectWallet}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold"
+                    >
+                      Disconnect
+                    </button>
+                  ) : (
+                    <button
+                      onClick={connectWallet}
+                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold"
+                    >
+                      Connect Wallet
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
