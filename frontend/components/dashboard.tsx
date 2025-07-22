@@ -6,6 +6,8 @@ import AnimatedNumber from "@/components/ui/animated-number"
 
 import { useRouter } from "next/navigation"
 import { useAuth } from "./auth-context"
+// For ethers v6 and above, use BrowserProvider instead of Web3Provider:
+import { ethers } from "ethers"
 
 import ELD_ABI from "../abis/erc20.json"
 
@@ -46,36 +48,52 @@ export function Dashboard() {
   const { user } = useAuth()
   
 
-  useEffect(() => {
-    const fetchBalance = async () => {
-      try {
-        if (typeof window !== "undefined" && (window as any).ethereum) {
-          const accounts = await (window as any).ethereum.request({ method: "eth_accounts" })
-          if (accounts.length > 0) {
-            const balHex = await (window as any).ethereum.request({
-              method: "eth_getBalance",
-              params: [accounts[0], "latest"],
-            })
-            const bal = parseInt(balHex, 16) / 1e18
-            setEthBalance(parseFloat(bal.toFixed(4)))
-          } else {
-            setEthBalance(0)
-          }
+// Adresse de ton token ELD (à remplacer)
+const ELD_TOKEN_ADDRESS = "0xae1056bB5fd8EF47f324B39831ca8db14573014f"
+
+const ELD_ABI = [
+  "function balanceOf(address owner) view returns (uint256)",
+  "function decimals() view returns (uint8)"
+]
+
+
+useEffect(() => {
+  const fetchBalance = async () => {
+    try {
+      if (typeof window !== "undefined" && (window as any).ethereum) {
+        const accounts = await (window as any).ethereum.request({ method: "eth_accounts" })
+          const provider = new ethers.BrowserProvider((window as any).ethereum)
+          const account = accounts[0]
+
+          // ETH balance
+          const bal = await provider.getBalance(account)
+          setEthBalance(parseFloat(ethers.formatEther(bal)))
+
+          // ELD balance
+          const eldContract = new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, provider)
+          const rawEldBalance = await eldContract.balanceOf(account)
+          const decimals = await eldContract.decimals()
+          setEldBalance(parseFloat(ethers.formatUnits(rawEldBalance, decimals)))
+        } else {
+          setEthBalance(0)
+          setEldBalance(0)
         }
-      } catch (err) {
-        console.error(err)
       }
+    catch (err) {
+      console.error(err)
     }
+  }
 
-    fetchBalance()
+  fetchBalance()
 
-    if (typeof window !== "undefined" && (window as any).ethereum) {
-      ;(window as any).ethereum.on("accountsChanged", fetchBalance)
-      return () => {
-        ;(window as any).ethereum.removeListener("accountsChanged", fetchBalance)
-      }
+  if (typeof window !== "undefined" && (window as any).ethereum) {
+    (window as any).ethereum.on("accountsChanged", fetchBalance)
+    return () => {
+      (window as any).ethereum.removeListener("accountsChanged", fetchBalance)
     }
-  }, [])
+  }
+}, [])
+
 
   useEffect(() => {
     if (user) {
