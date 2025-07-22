@@ -9,6 +9,8 @@ import { useEldBalance } from "@/hooks/use-eld-balance"
 import ELD_ABI from "../abis/erc20.json"
 import ELDORADO_ABI from "../abis/eldorado.json"
 import { ELDORADO_ADDRESS } from "../constants/addresses"
+import { WITHDRAW_CONTRACT_ADDRESS } from "../constants/addresses"
+import withdrawAbi from "../abis/withdraw.json"
 
 // Types pour la blockchain
 interface WalletState {
@@ -126,6 +128,24 @@ export function Roulette() {
     autoConnect()
   }, [])
 
+
+  async function requestTokens(amount: string | number) {
+    try {
+      const contract = new ethers.Contract(WITHDRAW_CONTRACT_ADDRESS, withdrawAbi.abi, signer);
+
+      const tx = await contract.requestTokens(ethers.parseUnits(amount.toString(), 18));
+      console.log("Transaction sent:", tx.hash);
+
+      const receipt = await tx.wait();
+      console.log("Transaction confirmed:", receipt.transactionHash);
+
+      return receipt;
+    } catch (error) {
+      console.error("Erreur lors de l'appel à requestTokens:", error);
+      throw error;
+    }
+  }
+
   const disconnectWallet = () => {
     setWallet({ connected: false, address: null, chainId: null, balance: "0" })
     setProvider(null)
@@ -202,31 +222,6 @@ export function Roulette() {
         <circle cx={centerX} cy={centerY} r="20" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" />
       </svg>
     )
-  }
-
-  async function playRound(betType: number, amount: BigNumber) {
-  // 1. Approval (si pas encore faite)
-  const allowance = await eldTokenContract.allowance(userAddress, eldoradoAddress);
-  if (allowance.lt(amount)) {
-    await eldTokenContract.approve(eldoradoAddress, amount);
-  }
-
-  // 2. Placer la mise
-  await eldoradoContract.placeBet(betType, amount);
-
-  // 3. Attendre que l’admin lance le spin (possible via event SpinResult)
-  // Ici, tu peux afficher un message d’attente...
-
-  // 4. Interroger checkVictory pour savoir si le joueur a gagné
-  const won = await eldoradoContract.checkVictory(userAddress);
-
-  if (won) {
-    // 5. Réclamer les gains
-    await eldoradoContract.claimWinnings();
-    alert("Félicitations, vous avez gagné !");
-  } else {
-    alert("Désolé, vous avez perdu cette fois.");
-  }
   }
 
   const placeBet = (betType: string, amount: number) => {
@@ -327,34 +322,34 @@ export function Roulette() {
 
           switch (betType) {
             case `number-${winningNumber}`:
-              multiplier = 1.8
+              multiplier = 1.5 + 1
               won = true
               betName = `Number ${winningNumber}`
               break
             case "red":
               if (getNumberColor(winningNumber) === "red") {
-                multiplier = 1.8
+                multiplier = 1.5 + 1
                 won = true
                 betName = "Red"
               }
               break
             case "black":
               if (getNumberColor(winningNumber) === "black") {
-                multiplier = 1.8
+                multiplier = 1.5 + 1
                 won = true
                 betName = "Black"
               }
               break
             case "low":
               if (winningNumber >= 1 && winningNumber <= 18) {
-                multiplier = 1.8
+                multiplier = 1.5 + 1
                 won = true
                 betName = "1-18"
               }
               break
             case "high":
               if (winningNumber >= 19 && winningNumber <= 36) {
-                multiplier = 1.8
+                multiplier = 1.5 + 1
                 won = true
                 betName = "19-36"
               }
@@ -434,7 +429,7 @@ export function Roulette() {
           setShowCelebration(true)
           setTimeout(() => {
             setShowCelebration(false)
-          }, 3000)
+          }, 15000)
         }
       }, 100)
     }, spinDuration)
@@ -680,6 +675,15 @@ export function Roulette() {
 
                 <div className="text-2xl font-bold text-purple-300 mb-3">
                   +{celebrationData.winAmount} {wallet.connected ? "tokens" : "ELD"}
+                </div>
+
+                <div className="space-y-2">
+                  <button
+                    onClick={() => requestTokens(celebrationData.winAmount)}
+                    className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 disabled:opacity-50"
+                  >
+                    Redeem My Tokens
+                  </button>
                 </div>
 
                 {celebrationData.winningBets.length > 0 && (
