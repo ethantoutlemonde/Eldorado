@@ -8,6 +8,11 @@ import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { useAuth } from "./auth-context"
 import { useEldBalance } from "@/hooks/use-eld-balance"
+import { ethers, parseUnits } from "ethers"
+import ELD_ABI from "../abis/erc20.json"
+import ELDORADO_ABI from "../abis/eldorado.json"
+import { ELDORADO_ADDRESS, WITHDRAW_CONTRACT_ADDRESS } from "../constants/addresses"
+import withdrawAbi from "../abis/withdraw.json"
 
 export function SlotMachine() {
   const router = useRouter()
@@ -39,6 +44,25 @@ export function SlotMachine() {
   const [theme, setTheme] = useState<"luxury" | "neon" | "classic">("luxury")
   const { balance: eldBalance, refresh: refreshEldBalance } = useEldBalance()
 
+  interface WalletState {
+    connected: boolean
+    address: string | null
+    chainId: number | null
+    balance: string
+  }
+
+  const [wallet, setWallet] = useState<WalletState>({
+    connected: false,
+    address: null,
+    chainId: null,
+    balance: "0",
+  })
+  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null)
+  const [signer, setSigner] = useState<ethers.Signer | null>(null)
+  const [eldoradoContract, setEldoradoContract] = useState<ethers.Contract | null>(null)
+  const [eldTokenContract, setEldTokenContract] = useState<ethers.Contract | null>(null)
+  const ELD_TOKEN_ADDRESS = "0xae1056bB5fd8EF47f324B39831ca8db14573014f"
+
   useEffect(() => {
     if (user) {
       const stored = localStorage.getItem(`wins_${user.id}`)
@@ -48,6 +72,106 @@ export function SlotMachine() {
       }
     }
   }, [user])
+
+  const connectWallet = async () => {
+    try {
+      if (typeof window !== "undefined" && (window as any).ethereum) {
+        const prov = new ethers.BrowserProvider((window as any).ethereum)
+        await prov.send("eth_requestAccounts", [])
+        const sign = await prov.getSigner()
+        const addr = await sign.getAddress()
+        const { chainId } = await prov.getNetwork()
+        const bal = await prov.getBalance(addr)
+        setWallet({
+          connected: true,
+          address: addr,
+          chainId: Number(chainId),
+          balance: ethers.formatEther(bal),
+        })
+        setProvider(prov)
+        setSigner(sign)
+        setEldoradoContract(new ethers.Contract(ELDORADO_ADDRESS, ELDORADO_ABI, sign))
+        setEldTokenContract(new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, sign))
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  useEffect(() => {
+    const autoConnect = async () => {
+      if (typeof window !== "undefined" && (window as any).ethereum) {
+        const accounts = await (window as any).ethereum.request({ method: "eth_accounts" })
+        if (accounts.length > 0) {
+          const prov = new ethers.BrowserProvider((window as any).ethereum)
+          const sign = await prov.getSigner()
+          const { chainId } = await prov.getNetwork()
+          const bal = await prov.getBalance(accounts[0])
+          setWallet({
+            connected: true,
+            address: accounts[0],
+            chainId: Number(chainId),
+            balance: ethers.formatEther(bal),
+          })
+          setProvider(prov)
+          setSigner(sign)
+          setEldoradoContract(new ethers.Contract(ELDORADO_ADDRESS, ELDORADO_ABI, sign))
+          setEldTokenContract(new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, sign))
+        }
+      }
+    }
+    autoConnect()
+  }, [])
+
+  const disconnectWallet = () => {
+    setWallet({ connected: false, address: null, chainId: null, balance: "0" })
+    setProvider(null)
+    setSigner(null)
+    setEldoradoContract(null)
+    setEldTokenContract(null)
+  }
+
+  async function requestTokens(amount: string | number) {
+    try {
+      const contract = new ethers.Contract(WITHDRAW_CONTRACT_ADDRESS, withdrawAbi.abi, signer)
+      const tx = await contract.requestTokens(ethers.parseUnits(amount.toString(), 18))
+      const receipt = await tx.wait()
+      return receipt
+    } catch (error) {
+      console.error("Erreur lors de l'appel à requestTokens:", error)
+      throw error
+    }
+  }
+
+  const recordBet = async (won: boolean) => {
+    if (!wallet.connected || !eldoradoContract || !eldTokenContract || !wallet.address) return
+    try {
+      const rand: bigint = await eldoradoContract.getRandomNumber()
+      const guess = won ? rand : 37n
+      const amount = parseUnits(bet.toString(), 18)
+      const allowance: bigint = await eldTokenContract.allowance(wallet.address, ELDORADO_ADDRESS)
+      if (allowance < amount) {
+        const approveTx = await eldTokenContract.approve(ELDORADO_ADDRESS, amount)
+        await approveTx.wait()
+      }
+      const tx = await eldoradoContract.placeBet(guess, amount)
+      await tx.wait()
+      refreshEldBalance()
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const redeem = async () => {
+    if (!wallet.connected || !eldoradoContract) return
+    try {
+      const tx = await eldoradoContract.claimWinnings()
+      await tx.wait()
+      refreshEldBalance()
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   // References for animations
   const machineRef = useRef<HTMLDivElement>(null)
@@ -306,8 +430,24 @@ export function SlotMachine() {
     })
   }
 
-  const spin = () => {
+  const spin = async () => {
     if (isSpinning || balance < bet) return
+
+    if (wallet.connected && signer && eldoradoContract && eldTokenContract && wallet.address) {
+      try {
+        const amount = parseUnits(bet.toString(), 18)
+        const allowance: bigint = await eldTokenContract.allowance(wallet.address, ELDORADO_ADDRESS)
+        if (allowance < amount) {
+          const approveTx = await eldTokenContract.approve(ELDORADO_ADDRESS, amount)
+          await approveTx.wait()
+        }
+        const tx = await eldoradoContract.placeBet(0, amount)
+        await tx.wait()
+      } catch (err) {
+        console.error(err)
+        return
+      }
+    }
 
     // Button press animation
     if (spinButtonRef.current) {
@@ -354,7 +494,7 @@ export function SlotMachine() {
     })
   }
 
-  const checkWin = (isFreeSpin = false) => {
+  const checkWin = async (isFreeSpin = false) => {
     // Get visible symbols for all reels
     const currentVisibleSymbols = [...visibleSymbols]
     const winningLines: number[] = []
@@ -416,6 +556,25 @@ export function SlotMachine() {
       setWinLines(winningLines)
       setShowWinAnimation(true)
 
+      if (wallet.connected) {
+        recordBet(true)
+        try {
+          if (eldoradoContract) {
+            const currentBet: bigint = await eldoradoContract.bets(wallet.address)
+            if (currentBet > 0n) {
+              const onChainWin = await eldoradoContract.checkVictory(wallet.address)
+              if (onChainWin) {
+                const claimTx = await eldoradoContract.claimWinnings()
+                await claimTx.wait()
+                refreshEldBalance()
+              }
+            }
+          }
+        } catch (err) {
+          console.error(err)
+        }
+      }
+
       if (totalWinAmount >= bet * 10) {
         playSound("bigWin")
       } else {
@@ -428,6 +587,7 @@ export function SlotMachine() {
       }, 3000)
     } else {
       playSound("lose")
+      if (wallet.connected) recordBet(false)
     }
 
     setIsSpinning(false)
@@ -805,6 +965,14 @@ export function SlotMachine() {
                     >
                       WIN! +{lastWin.toLocaleString()} ELD
                     </motion.div>
+                    <div className="mt-4">
+                      <Button
+                        onClick={() => requestTokens(lastWin)}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                      >
+                        Redeem My Tokens
+                      </Button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -816,6 +984,17 @@ export function SlotMachine() {
                 >
                   <div className="text-sm text-gray-400">ELD Balance</div>
                   <div className="text-xl font-bold text-white">{eldBalance.toLocaleString()} ELD</div>
+                  <div className="mt-2">
+                    {wallet.connected ? (
+                      <Button onClick={disconnectWallet} size="sm" className="w-full bg-red-600 hover:bg-red-700 text-white">
+                        Disconnect
+                      </Button>
+                    ) : (
+                      <Button onClick={connectWallet} size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white">
+                        Connect Wallet
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 <div
