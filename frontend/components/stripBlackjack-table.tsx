@@ -316,7 +316,7 @@ export function BlackjackTable() {
   const Card = ({ card, hidden = false }: { card: string; hidden?: boolean }) => {
     if (hidden) {
       return (
-        <div className="relative w-20 h-28 sm:w-24 sm:h-32 bg-gradient-to-br from-purple-900 to-pink-900 rounded-lg shadow-lg border border-purple-400/30 flex items-center justify-center transform hover:scale-105 transition-transform">
+        <div className="relative w-20 h-28 sm:w-24 sm:h-32 bg-gradient-to-br from-green-900 to-green-900 rounded-lg shadow-lg border border-green-400/30 flex items-center justify-center transform hover:scale-105 transition-transform">
           <div className="text-4xl">🂠</div>
         </div>
       )
@@ -368,7 +368,7 @@ export function BlackjackTable() {
 
         {/* Title and Stats */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-magenta-400 bg-clip-text text-transparent mb-6">
+          <h1 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-green-400 via-green-400 to-black bg-clip-text text-transparent mb-6">
             Blackjack
           </h1>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-8 text-gray-200">
@@ -400,7 +400,7 @@ export function BlackjackTable() {
         <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 sm:p-8">
         {/* Celebration Animation */}
           {showCelebration && (
-            <div className="relative bg-gradient-to-br from-pink-300 via-purple-400 to-violet-500 text-white rounded-2xl px-10 py-8 shadow-2xl border-4 border-pink-200 animate-bounce-slow pointer-events-auto">
+            <div className="relative bg-gradient-to-br from-green-300 via-green-400 to-violet-500 text-white rounded-2xl px-10 py-8 shadow-2xl border-4 border-green-200 animate-bounce-slow pointer-events-auto">
               <div className="text-4xl sm:text-5xl font-extrabold text-center mb-4 drop-shadow-lg">
                 You Win!
               </div>
@@ -437,7 +437,7 @@ export function BlackjackTable() {
                 <div className="flex items-center space-x-4">
                   <button
                     onClick={() => setBet((b) => Math.max(10, b - 10))}
-                    className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold hover:from-pink-600 hover:to-purple-600 transition-all transform hover:scale-105 active:scale-95"
+                    className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-green-500 text-white font-bold hover:from-green-600 hover:to-green-600 transition-all transform hover:scale-105 active:scale-95"
                   >
                     -10
                   </button>
@@ -446,7 +446,7 @@ export function BlackjackTable() {
                   </div>
                   <button
                     onClick={() => setBet((b) => b + 10)}
-                    className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-magenta-500 text-white font-bold hover:from-purple-600 hover:to-magenta-600 transition-all transform hover:scale-105 active:scale-95"
+                    className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-green-500 text-white font-bold hover:from-green-600 hover:to-green-600 transition-all transform hover:scale-105 active:scale-95"
                   >
                     +10
                   </button>
@@ -456,7 +456,7 @@ export function BlackjackTable() {
               <button
                 onClick={startGame}
                 disabled={balance < bet}
-                className="px-8 py-4 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 via-purple-500 to-magenta-500 hover:from-pink-600 hover:via-purple-600 hover:to-magenta-600 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                className="px-8 py-4 rounded-xl font-bold text-white bg-gradient-to-r from-green-500 via-green-500 to-green-500 hover:from-green-600 hover:via-green-600 hover:to-green-600 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
                 Deal Cards
               </button>
@@ -519,7 +519,7 @@ export function BlackjackTable() {
                 )}
                 {revealed && (
                   <button
-                    className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-purple-500 to-magenta-500 hover:from-purple-600 hover:to-magenta-600 transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+                    className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-green-500 to-green-500 hover:from-green-600 hover:to-green-600 transition-all transform hover:scale-105 active:scale-95 shadow-lg"
                     onClick={reset}
                   >
                     New Game

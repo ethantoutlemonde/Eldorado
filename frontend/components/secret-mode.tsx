@@ -26,7 +26,7 @@ export function SecretMode() {
 
   const games = [
     {
-      id: "slots",
+      id: "stripSlots",
       title: "Strip Slots",
       subtitle: "Spin to Win",
       icon: Zap,
@@ -34,7 +34,7 @@ export function SecretMode() {
       description: "3-reel classic with mega multipliers",
     },
     {
-      id: "roulette",
+      id: "stripSpin",
       title: "Strip Roulette",
       subtitle: "Place Your Bets",
       icon: Target,
@@ -42,7 +42,7 @@ export function SecretMode() {
       description: "European roulette with live results",
     },
     {
-      id: "blackjack",
+      id: "stripBlackjack",
       title: "Strip Blackjack",
       subtitle: "Beat the Dealer",
       icon: Spade,
@@ -212,7 +212,7 @@ export function SecretMode() {
 
               {/* DISCLAIMER */}
               {/* <div className="bg-yellow-900/20 border border-yellow-400/50 rounded-xl p-6 text-center mb-8">
-                <h3 className="text-xl font-bold text-yellow-400 mb-4">🎪 ENTERTAINMENT MODE 🎪</h3>
+                <h3 className="text-xl font-bold text-yellow-400 mb-4">ENTERTAINMENT MODE</h3>
                 <p className="text-gray-300 text-sm">
                   This is a fun easter egg interface! No real cryptocurrency, private keys, or sensitive information
                   is displayed. This is purely for entertainment and demonstrates UI/UX design concepts. Always keep
@@ -262,6 +262,10 @@ export function SecretMode() {
                                 ? `bg-gradient-to-r ${game.gradient} text-white shadow-lg`
                                 : "bg-white/10 text-gray-300 hover:bg-white/20"
                             }`}
+                            onClick={() => {
+                              const path = `/${game.id}`
+                              router.push(path)
+                            }}
                           >
                             Play Now
                           </button>
