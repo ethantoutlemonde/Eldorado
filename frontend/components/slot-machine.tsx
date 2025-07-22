@@ -433,20 +433,24 @@ export function SlotMachine() {
   const spin = async () => {
     if (isSpinning || balance < bet) return
 
-    if (wallet.connected && signer && eldoradoContract && eldTokenContract && wallet.address) {
-      try {
-        const amount = parseUnits(bet.toString(), 18)
-        const allowance: bigint = await eldTokenContract.allowance(wallet.address, ELDORADO_ADDRESS)
-        if (allowance < amount) {
-          const approveTx = await eldTokenContract.approve(ELDORADO_ADDRESS, amount)
-          await approveTx.wait()
-        }
-        const tx = await eldoradoContract.placeBet(0, amount)
-        await tx.wait()
-      } catch (err) {
-        console.error(err)
-        return
+    if (!wallet.connected || !signer || !eldoradoContract || !eldTokenContract || !wallet.address) {
+      // Prompt the user to connect their wallet before spinning
+      await connectWallet()
+      if (!wallet.connected) return
+    }
+
+    try {
+      const amount = parseUnits(bet.toString(), 18)
+      const allowance: bigint = await eldTokenContract!.allowance(wallet.address!, ELDORADO_ADDRESS)
+      if (allowance < amount) {
+        const approveTx = await eldTokenContract!.approve(ELDORADO_ADDRESS, amount)
+        await approveTx.wait()
       }
+      const tx = await eldoradoContract!.placeBet(0, amount)
+      await tx.wait()
+    } catch (err) {
+      console.error(err)
+      return
     }
 
     // Button press animation
