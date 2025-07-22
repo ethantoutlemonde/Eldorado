@@ -98,6 +98,23 @@ export function SlotMachine() {
     }
   }
 
+  async function requestTokens(amount: string | number) {
+    try {
+      const contract = new ethers.Contract(WITHDRAW_CONTRACT_ADDRESS, withdrawAbi.abi, signer);
+
+      const tx = await contract.requestTokens(ethers.parseUnits(amount.toString(), 18));
+      console.log("Transaction sent:", tx.hash);
+
+      const receipt = await tx.wait();
+      console.log("Transaction confirmed:", receipt.transactionHash);
+
+      return receipt;
+    } catch (error) {
+      console.error("Erreur lors de l'appel à requestTokens:", error);
+      throw error;
+    }
+  }
+
   useEffect(() => {
     const autoConnect = async () => {
       if (typeof window !== "undefined" && (window as any).ethereum) {
@@ -129,24 +146,6 @@ export function SlotMachine() {
     setSigner(null)
     setEldoradoContract(null)
     setEldTokenContract(null)
-  }
-
-  async function requestTokens(amount: string | number) {
-    try {
-      const contract = new ethers.Contract(
-        WITHDRAW_CONTRACT_ADDRESS,
-        withdrawAbi.abi,
-        signer,
-      )
-      const tx = await contract.requestTokens(
-        ethers.parseUnits(amount.toString(), 18),
-      )
-      const receipt = await tx.wait()
-      return receipt
-    } catch (error) {
-      console.error("Erreur lors de l'appel à requestTokens:", error)
-      throw error
-    }
   }
 
   const recordBet = async (won: boolean) => {
@@ -977,7 +976,7 @@ export function SlotMachine() {
                     </motion.div>
                     <div className="mt-4">
                       <Button
-                        onClick={redeem}
+                        onClick={() => requestTokens(lastWin)}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white"
                       >
                         Redeem My Tokens
@@ -996,9 +995,8 @@ export function SlotMachine() {
                   <div className="text-xl font-bold text-white">{eldBalance.toLocaleString()} ELD</div>
                   <div className="mt-2">
                     {wallet.connected ? (
-                      <Button onClick={disconnectWallet} size="sm" className="w-full bg-red-600 hover:bg-red-700 text-white">
-                        Disconnect
-                      </Button>
+                      <>
+                      </>
                     ) : (
                       <Button onClick={connectWallet} size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white">
                         Connect Wallet
@@ -1067,7 +1065,7 @@ export function SlotMachine() {
                   className={`backdrop-blur-sm bg-black/30 rounded-xl px-4 py-3 border border-${currentTheme.accentColor}-500/20`}
                 >
                   <div className="text-sm text-gray-400">Total Win</div>
-                  <div className="text-xl font-bold text-green-400">{totalWin.toLocaleString()} ELD</div>
+                  <div className="text-xl font-bold text-green-400">ELD</div>
                 </div>
               </div>
 
