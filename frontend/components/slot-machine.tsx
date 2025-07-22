@@ -133,8 +133,14 @@ export function SlotMachine() {
 
   async function requestTokens(amount: string | number) {
     try {
-      const contract = new ethers.Contract(WITHDRAW_CONTRACT_ADDRESS, withdrawAbi.abi, signer)
-      const tx = await contract.requestTokens(ethers.parseUnits(amount.toString(), 18))
+      const contract = new ethers.Contract(
+        WITHDRAW_CONTRACT_ADDRESS,
+        withdrawAbi.abi,
+        signer,
+      )
+      const tx = await contract.requestTokens(
+        ethers.parseUnits(amount.toString(), 18),
+      )
       const receipt = await tx.wait()
       return receipt
     } catch (error) {
@@ -971,7 +977,7 @@ export function SlotMachine() {
                     </motion.div>
                     <div className="mt-4">
                       <Button
-                        onClick={() => requestTokens(lastWin)}
+                        onClick={redeem}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white"
                       >
                         Redeem My Tokens
