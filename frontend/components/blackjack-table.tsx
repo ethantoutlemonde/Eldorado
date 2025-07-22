@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "./auth-context"
 import { useEldBalance } from "@/hooks/use-eld-balance"
 import { Sparkles, Frown } from "lucide-react"
+import { ethers, parseUnits } from "ethers"
+import ELD_ABI from "../abis/erc20.json"
+import ELDORADO_ABI from "../abis/eldorado.json"
+import { ELDORADO_ADDRESS } from "../constants/addresses"
 
 const suits = ["♠", "♥", "♦", "♣"]
 const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
@@ -41,6 +45,13 @@ function handValue(hand: string[]): number {
   return value
 }
 
+interface WalletState {
+  connected: boolean
+  address: string | null
+  chainId: number | null
+  balance: string
+}
+
 export function BlackjackTable() {
   const router = useRouter()
   const [deck, setDeck] = useState<string[]>([])
@@ -55,6 +66,106 @@ export function BlackjackTable() {
 
   const [showCelebration, setShowCelebration] = useState(false)
   const [showSadness, setShowSadness] = useState(false)
+
+  const [wallet, setWallet] = useState<WalletState>({
+    connected: false,
+    address: null,
+    chainId: null,
+    balance: "0",
+  })
+  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null)
+  const [signer, setSigner] = useState<ethers.Signer | null>(null)
+  const [eldoradoContract, setEldoradoContract] = useState<ethers.Contract | null>(null)
+  const [eldTokenContract, setEldTokenContract] = useState<ethers.Contract | null>(null)
+  const ELD_TOKEN_ADDRESS = "0xae1056bB5fd8EF47f324B39831ca8db14573014f"
+
+  const connectWallet = async () => {
+    try {
+      if (typeof window !== "undefined" && (window as any).ethereum) {
+        const prov = new ethers.BrowserProvider((window as any).ethereum)
+        await prov.send("eth_requestAccounts", [])
+        const sign = await prov.getSigner()
+        const addr = await sign.getAddress()
+        const { chainId } = await prov.getNetwork()
+        const bal = await prov.getBalance(addr)
+        setWallet({
+          connected: true,
+          address: addr,
+          chainId: Number(chainId),
+          balance: ethers.formatEther(bal),
+        })
+        setProvider(prov)
+        setSigner(sign)
+        setEldoradoContract(new ethers.Contract(ELDORADO_ADDRESS, ELDORADO_ABI, sign))
+        setEldTokenContract(new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, sign))
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  useEffect(() => {
+    const autoConnect = async () => {
+      if (typeof window !== "undefined" && (window as any).ethereum) {
+        const accounts = await (window as any).ethereum.request({ method: "eth_accounts" })
+        if (accounts.length > 0) {
+          const prov = new ethers.BrowserProvider((window as any).ethereum)
+          const sign = await prov.getSigner()
+          const { chainId } = await prov.getNetwork()
+          const bal = await prov.getBalance(accounts[0])
+          setWallet({
+            connected: true,
+            address: accounts[0],
+            chainId: Number(chainId),
+            balance: ethers.formatEther(bal),
+          })
+          setProvider(prov)
+          setSigner(sign)
+          setEldoradoContract(new ethers.Contract(ELDORADO_ADDRESS, ELDORADO_ABI, sign))
+          setEldTokenContract(new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, sign))
+        }
+      }
+    }
+    autoConnect()
+  }, [])
+
+  const disconnectWallet = () => {
+    setWallet({ connected: false, address: null, chainId: null, balance: "0" })
+    setProvider(null)
+    setSigner(null)
+    setEldoradoContract(null)
+    setEldTokenContract(null)
+  }
+
+  const recordBet = async (won: boolean) => {
+    if (!wallet.connected || !eldoradoContract || !eldTokenContract || !wallet.address) return
+    try {
+      const rand: bigint = await eldoradoContract.getRandomNumber()
+      const guess = won ? rand : 37n
+      const amount = parseUnits(bet.toString(), 18)
+      const allowance: bigint = await eldTokenContract.allowance(wallet.address, ELDORADO_ADDRESS)
+      if (allowance < amount) {
+        const approveTx = await eldTokenContract.approve(ELDORADO_ADDRESS, amount)
+        await approveTx.wait()
+      }
+      const tx = await eldoradoContract.placeBet(guess, amount)
+      await tx.wait()
+      refreshEldBalance()
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const redeem = async () => {
+    if (!wallet.connected || !eldoradoContract) return
+    try {
+      const tx = await eldoradoContract.claimWinnings()
+      await tx.wait()
+      refreshEldBalance()
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   useEffect(() => {
     if (user) {
@@ -94,6 +205,7 @@ export function BlackjackTable() {
       setShowSadness(true)
       setTimeout(() => setShowSadness(false), 3000)
     }
+    recordBet(res === "Player wins")
   }
 
   const newDeck = () => shuffle(suits.flatMap((s) => ranks.map((r) => s + r)))
@@ -241,12 +353,37 @@ export function BlackjackTable() {
               <span className="text-sm text-gray-400">ELD Balance:</span>
               <span className="ml-2 font-bold text-green-400">{eldBalance.toLocaleString()} ELD</span>
             </div>
-            <div className="px-4 py-2 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
-              <span className="text-sm text-gray-400">Total Wins:</span>
-              <span className="ml-2 font-bold text-yellow-400">${totalWins}</span>
-            </div>
+          <div className="px-4 py-2 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
+            <span className="text-sm text-gray-400">Total Wins:</span>
+            <span className="ml-2 font-bold text-yellow-400">${totalWins}</span>
           </div>
         </div>
+        <div className="mt-4 flex justify-center space-x-4">
+          {wallet.connected ? (
+            <>
+              <button
+                onClick={redeem}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold"
+              >
+                Redeem
+              </button>
+              <button
+                onClick={disconnectWallet}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold"
+              >
+                Disconnect
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={connectWallet}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold"
+            >
+              Connect Wallet
+            </button>
+          )}
+        </div>
+      </div>
 
         {/* Game Area */}
         <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 sm:p-8">
