@@ -7,6 +7,8 @@ import AnimatedNumber from "@/components/ui/animated-number"
 import { useRouter } from "next/navigation"
 import { useAuth } from "./auth-context"
 
+import ELD_ABI from "../abis/erc20.json"
+
 export function Dashboard() {
   const router = useRouter()
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
@@ -39,8 +41,10 @@ export function Dashboard() {
   ]
 
   const [ethBalance, setEthBalance] = useState(0)
+  const [eldBalance, setEldBalance] = useState(0)
   const [totalWins, setTotalWins] = useState(0)
   const { user } = useAuth()
+  
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -87,9 +91,9 @@ export function Dashboard() {
 
   const stats = [
     { label: "ETH Balance", value: ethBalance, suffix: " ETH", change: "" },
-    { label: "Total Wins", value: totalWins, suffix: " ETH", change: "" },
+    { label: "ELD Balance", value: eldBalance, suffix: " ELD", change: "" },
     { label: "Games Played", value: 8432, suffix: "", change: "+8.2%" },
-    { label: "Win Rate", value: 67.3, suffix: "%", change: "+2.1%" },
+    { label: "Win Rate", value: 80, suffix: "%", change: "+2.1%" },
   ]
 
   return (

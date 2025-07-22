@@ -3,54 +3,63 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
-import "../src/Swap.sol";
-import "../src/EldoradoToken.sol";
-import "../src/MockERC20.sol";
-import "../src/MockRouter.sol";
 
-/// @notice Script de déploiement sur le réseau Sepolia
+import "../src/MockERC20.sol";
+import "../src/EldoradoToken.sol";
+import "../src/Swap.sol";
+
 contract DeploySepolia is Script {
     function run() external {
         vm.startBroadcast();
 
-        MockERC20 usdc = new MockERC20("USD Coin", "USDC", 1_000_000 * 10 ** 18);
-        MockERC20 usdt = new MockERC20("Tether USD", "USDT", 1_000_000 * 10 ** 18);
-        MockERC20 weth = new MockERC20("Wrapped ETH", "WETH", 1_000_000 * 10 ** 18);
+        // 1. Déploiement des tokens mockés
+        MockERC20 usdc = new MockERC20("Mock USD Coin", "USDC", 1_000_000 ether);
+        MockERC20 usdt = new MockERC20("Mock Tether USD", "USDT", 1_000_000 ether);
 
-        MockRouter router = new MockRouter();
-        EldoradoToken eld = new EldoradoToken(1_000_000 * 10 ** 18);
+        // 2. Adresse WETH réelle sur Sepolia
+        address weth = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
 
+        // 3. Adresse du router UniswapV2 sur Sepolia
+        address router = 0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3;
+
+        // 4. Déploiement du token ELDORADO
+        EldoradoToken eld = new EldoradoToken(100_000_000 * 10 ** 18);
+        eld.transfer(0x19a762e00dd1F5F0fcC308782b9ad2A7B127DF93, 30_000_000 ether);
+        eld.transfer(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, 1_000_000 ether); // Transfert de 1M ELD à l'adresse
+        eld.transfer(0xEa418210e9A56D3BeeE8677DC748Bb89FB599b59, 1_000_000 ether); // Transfert de 1M ELD à l'adresse
+
+        // 5. Déploiement du contrat Swap
         Swap swap = new Swap(
-            address(router),
+            router,
             address(eld),
             address(usdc),
             address(usdt),
-            address(weth),
-            msg.sender,
-            msg.sender
+            weth,
+            msg.sender, // trésor
+            msg.sender  // admin
         );
 
-        console.log("USDC deployed at:", address(usdc));
-        console.log("USDT deployed at:", address(usdt));
-        console.log("WETH deployed at:", address(weth));
-        console.log("Router deployed at:", address(router));
-        console.log("EldoradoToken deployed at:", address(eld));
-        console.log("Swap deployed at:", address(swap));
+        // 6. Logs
+        console.log("USDC:", address(usdc));
+        console.log("USDT:", address(usdt));
+        console.log("ELD:", address(eld));
+        console.log("Swap:", address(swap));
 
-        vm.stopBroadcast();
-
+        // 7. Export JSON
         string memory json = string.concat(
             "{\n",
             '  "USDC": "', vm.toString(address(usdc)), '",\n',
             '  "USDT": "', vm.toString(address(usdt)), '",\n',
-            '  "WETH": "', vm.toString(address(weth)), '",\n',
-            '  "Router": "', vm.toString(address(router)), '",\n',
-            '  "EldoradoToken": "', vm.toString(address(eld)), '",\n',
-            '  "Swap": "', vm.toString(address(swap)), '"\n',
-            "}\n"
+            '  "ELDORADO": "', vm.toString(address(eld)), '",\n',
+            '  "SWAP": "', vm.toString(address(swap)), '"\n',
+            "}"
         );
 
-        string memory filePath = "./script/output/sepoliaAddresses.json";
-        vm.writeFile(filePath, json);
+        vm.writeFile("./script/output/sepoliaAddresses.json", json);
+
+        vm.stopBroadcast();
     }
 }
+
+
+// forge script script/DeploySepolia.s.sol:DeploySepolia --rpc-url https://sepolia.infura.io/v3/30a821291d5f47b4bbb8c23c05ba000f --private-key $env:PRIVATE_KEY --broadcast --gas-price 20000000000

@@ -1,5 +1,5 @@
 "use client"
-import { TokenSwap } from "@/components/token-swap";
+import TokenSwap from "@/components/token-swap";
 import { Navigation } from "@/components/navigation";
 import RequireAuth from "@/components/require-auth";
 
