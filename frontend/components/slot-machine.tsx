@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { useAuth } from "./auth-context"
+import { useEldBalance } from "@/hooks/use-eld-balance"
 
 export function SlotMachine() {
   const router = useRouter()
@@ -36,6 +37,7 @@ export function SlotMachine() {
   const [freeSpins, setFreeSpins] = useState(0)
   const [multiplier, setMultiplier] = useState(1)
   const [theme, setTheme] = useState<"luxury" | "neon" | "classic">("luxury")
+  const { balance: eldBalance, refresh: refreshEldBalance } = useEldBalance()
 
   useEffect(() => {
     if (user) {
@@ -540,7 +542,7 @@ export function SlotMachine() {
             <Award className="w-5 h-5 mr-2 text-pink-400" />
             <div>
               <div className="text-sm text-pink-500">MEGA JACKPOT</div>
-              <div className="text-2xl font-bold text-pink-400">{jackpot.toLocaleString()} ETH</div>
+              <div className="text-2xl font-bold text-pink-400">{jackpot.toLocaleString()} ELD</div>
             </div>
           </div> */}
 
@@ -801,7 +803,7 @@ export function SlotMachine() {
                       transition={{ duration: 0.5, repeat: 5 }}
                       className={`text-3xl md:text-4xl font-bold text-green-400`}
                     >
-                      WIN! +{lastWin.toLocaleString()} ETH
+                      WIN! +{lastWin.toLocaleString()} ELD
                     </motion.div>
                   </motion.div>
                 )}
@@ -812,8 +814,8 @@ export function SlotMachine() {
                 <div
                   className={`backdrop-blur-sm bg-black/30 rounded-xl px-4 py-3 border border-${currentTheme.accentColor}-500/20`}
                 >
-                  <div className="text-sm text-gray-400">Balance</div>
-                  <div className="text-xl font-bold text-white">{balance.toLocaleString()} ETH</div>
+                  <div className="text-sm text-gray-400">ELD Balance</div>
+                  <div className="text-xl font-bold text-white">{eldBalance.toLocaleString()} ELD</div>
                 </div>
 
                 <div
@@ -876,7 +878,7 @@ export function SlotMachine() {
                   className={`backdrop-blur-sm bg-black/30 rounded-xl px-4 py-3 border border-${currentTheme.accentColor}-500/20`}
                 >
                   <div className="text-sm text-gray-400">Total Win</div>
-                  <div className="text-xl font-bold text-green-400">{totalWin.toLocaleString()} ETH</div>
+                  <div className="text-xl font-bold text-green-400">{totalWin.toLocaleString()} ELD</div>
                 </div>
               </div>
 

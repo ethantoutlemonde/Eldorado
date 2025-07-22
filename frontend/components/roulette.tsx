@@ -5,6 +5,7 @@ import { ArrowLeft, ExternalLink, Copy, CheckCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "./auth-context"
 import { ethers, parseUnits, BigNumber } from "ethers"
+import { useEldBalance } from "@/hooks/use-eld-balance"
 import ELD_ABI from "../abis/erc20.json"
 import ELDORADO_ABI from "../abis/eldorado.json"
 import { ELDORADO_ADDRESS } from "../constants/addresses"
@@ -72,7 +73,7 @@ export function Roulette() {
     }
   }, [user])
 
-  const [eldBalance, setEldBalance] = useState(0)
+  const { balance: eldBalance, refresh: refreshEldBalance } = useEldBalance()
   const ELD_TOKEN_ADDRESS = "0xae1056bB5fd8EF47f324B39831ca8db14573014f"
 
   const connectWallet = async () => {
@@ -133,39 +134,6 @@ export function Roulette() {
     setEldTokenContract(null)
   }
 
-  const fetchBalance = async () => {
-    try {
-      if (wallet.connected && provider && wallet.address) {
-        const eldContract = new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, provider)
-        const rawEldBalance = await eldContract.balanceOf(wallet.address)
-        const decimals = await eldContract.decimals()
-        setEldBalance(parseFloat(ethers.formatUnits(rawEldBalance, decimals)))
-      } else if (typeof window !== "undefined" && (window as any).ethereum) {
-        const accounts = await (window as any).ethereum.request({ method: "eth_accounts" })
-        if (accounts.length > 0) {
-          const prov = new ethers.BrowserProvider((window as any).ethereum)
-          const eldContract = new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, prov)
-          const rawEldBalance = await eldContract.balanceOf(accounts[0])
-          const decimals = await eldContract.decimals()
-          setEldBalance(parseFloat(ethers.formatUnits(rawEldBalance, decimals)))
-        }
-      } else {
-        setEldBalance(0)
-      }
-    } catch (err) {
-      console.error(err)
-    }
-  }
-  useEffect(() => {
-    fetchBalance()
-
-    if (typeof window !== "undefined" && (window as any).ethereum) {
-      (window as any).ethereum.on("accountsChanged", fetchBalance)
-      return () => {
-        (window as any).ethereum.removeListener("accountsChanged", fetchBalance)
-      }
-    }
-  }, [wallet.connected, wallet.address, provider])
 
   const numbers = [
     0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29,
@@ -440,7 +408,7 @@ export function Roulette() {
               if (onChainWin) {
                 const claimTx = await eldoradoContract.claimWinnings()
                 await claimTx.wait()
-                fetchBalance()
+                refreshEldBalance()
               }
 
             }

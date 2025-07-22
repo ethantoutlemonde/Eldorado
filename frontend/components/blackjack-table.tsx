@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "./auth-context"
+import { useEldBalance } from "@/hooks/use-eld-balance"
 import { Sparkles, Frown } from "lucide-react"
 
 const suits = ["♠", "♥", "♦", "♣"]
@@ -50,6 +51,7 @@ export function BlackjackTable() {
   const [bet, setBet] = useState(50)
   const [totalWins, setTotalWins] = useState(0)
   const { user } = useAuth()
+  const { balance: eldBalance, refresh: refreshEldBalance } = useEldBalance()
 
   const [showCelebration, setShowCelebration] = useState(false)
   const [showSadness, setShowSadness] = useState(false)
@@ -236,8 +238,8 @@ export function BlackjackTable() {
           </h1>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-8 text-gray-200">
             <div className="px-4 py-2 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
-              <span className="text-sm text-gray-400">Balance:</span>
-              <span className="ml-2 font-bold text-green-400">${balance}</span>
+              <span className="text-sm text-gray-400">ELD Balance:</span>
+              <span className="ml-2 font-bold text-green-400">{eldBalance.toLocaleString()} ELD</span>
             </div>
             <div className="px-4 py-2 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
               <span className="text-sm text-gray-400">Total Wins:</span>
@@ -289,8 +291,8 @@ export function BlackjackTable() {
                   <span className="ml-2 font-bold text-orange-400">${bet}</span>
                 </div>
                 <div className="px-4 py-2 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
-                  <span className="text-sm text-gray-400">Balance:</span>
-                  <span className="ml-2 font-bold text-green-400">${balance}</span>
+                  <span className="text-sm text-gray-400">ELD Balance:</span>
+                  <span className="ml-2 font-bold text-green-400">{eldBalance.toLocaleString()} ELD</span>
                 </div>
               </div>
 

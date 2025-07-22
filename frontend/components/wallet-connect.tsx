@@ -5,6 +5,7 @@ import { ArrowLeft, Wallet, Shield, Zap, Copy, ExternalLink } from "lucide-react
 import { useRouter } from "next/navigation"
 import { useAuth } from "./auth-context"
 import { ethers } from "ethers"
+import { useEldBalance } from "@/hooks/use-eld-balance"
 
 
 interface WalletConnectProps {
@@ -18,7 +19,7 @@ export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
   const [isConnected, setIsConnected] = useState(false)
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null)
   const [walletAddress, setWalletAddress] = useState<string>("")
-  const [balance, setBalance] = useState<string>("")
+  const { balance, refresh: refreshBalance } = useEldBalance()
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<string>("")
   const [succes, setsucces] = useState<string>("")
@@ -463,13 +464,13 @@ export function WalletConnect({ redirectOnLogin = true }: WalletConnectProps) {
                 <h3 className="text-xl font-bold text-white mb-6">Balance</h3>
                 <div className="space-y-4">
                   <div className="bg-gradient-to-r from-pink-500/20 to-violet-500/20 border border-pink-500/30 rounded-2xl p-6">
-                    <div className="text-3xl font-bold text-white mb-2">{balance} ETH</div>
+                    <div className="text-3xl font-bold text-white mb-2">{balance} ELD</div>
                     <div className="text-gray-400 text-sm">≈ $23,847.32 USD</div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-black/30 border border-pink-500/20 rounded-xl p-4">
-                      <div className="text-lg font-bold text-white">2,450</div>
+                      <div className="text-lg font-bold text-white">{balance}</div>
                       <div className="text-gray-400 text-sm">ELDORADO</div>
                     </div>
                     <div className="bg-black/30 border border-pink-500/20 rounded-xl p-4">
