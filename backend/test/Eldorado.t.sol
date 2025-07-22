@@ -265,6 +265,28 @@ contract EldoradoTest is Test {
         assertEq(eldorado.bets(player1), 0);
         assertEq(eldorado.betAmounts(player1), 0);
     }
+
+    // Nouveau test pour s'assurer qu'une mise sur 0 peut etre reclamee
+    function testClaimWinningsZeroBetType() public {
+        uint256 betType = 0;
+        uint256 betAmount = 5 ether;
+        uint256 expectedPayout = betAmount * 35;
+
+        vm.prank(player1);
+        eldorado.placeBet(betType, betAmount);
+
+        bytes32 requestId = bytes32(uint256(1));
+        vrfCoordinator.fulfillRandomnessManual(address(eldorado), requestId, 0);
+
+        uint256 initialBalance = eldToken.balanceOf(player1);
+
+        vm.prank(player1);
+        eldorado.claimWinnings();
+
+        assertEq(eldToken.balanceOf(player1), initialBalance + expectedPayout);
+        assertEq(eldorado.bets(player1), 0);
+        assertEq(eldorado.betAmounts(player1), 0);
+    }
     
     function testClaimWinningsNoBet() public {
         vm.prank(player1);

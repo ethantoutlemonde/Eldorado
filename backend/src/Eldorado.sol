@@ -65,7 +65,7 @@ contract Eldorado is VRFConsumerBase, ReentrancyGuard {
     function claimWinnings() external nonReentrant {
         uint256 betType = bets[msg.sender];
         uint256 betAmount = betAmounts[msg.sender];
-        require(betType > 0, "Aucune mise trouvee");
+        require(betAmount > 0, "Aucune mise trouvee");
         require(checkVictory(msg.sender), "Pas de victoire");
         
         bets[msg.sender] = 0;
