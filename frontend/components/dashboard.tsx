@@ -110,8 +110,8 @@ useEffect(() => {
   const stats = [
     { label: "ETH Balance", value: ethBalance, suffix: " ETH", change: "" },
     { label: "ELD Balance", value: eldBalance, suffix: " ELD", change: "" },
-    { label: "Games Played", value: 8432, suffix: "", change: "+8.2%" },
-    { label: "Win Rate", value: 80, suffix: "%", change: "+2.1%" },
+    { label: "Total Supply", value: 100000000, suffix: " ELD", change: "+100%" },
+    { label: "Win Rate", value: 51, suffix: "%", change: "+2.1%" },
   ]
 
   return (
