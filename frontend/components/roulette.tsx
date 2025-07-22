@@ -434,11 +434,15 @@ export function Roulette() {
         let onChainWin = false
         if (wallet.connected && eldoradoContract) {
           try {
-            onChainWin = await eldoradoContract.checkVictory(wallet.address)
-            if (onChainWin) {
-              const claimTx = await eldoradoContract.claimWinnings()
-              await claimTx.wait()
-              fetchBalance()
+            const currentBet: bigint = await eldoradoContract.bets(wallet.address)
+            if (currentBet > 0n) {
+              onChainWin = await eldoradoContract.checkVictory(wallet.address)
+              if (onChainWin) {
+                const claimTx = await eldoradoContract.claimWinnings()
+                await claimTx.wait()
+                fetchBalance()
+              }
+
             }
           } catch (err) {
             console.error(err)
