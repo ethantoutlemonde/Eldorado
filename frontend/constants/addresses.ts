@@ -3,6 +3,7 @@
 export const SWAP_ADDRESS = "0x221F31F9c01c6ba68C19C7A032dF0A52691E8Cf8"; // ← Remplace avec la vraie adresse du contrat Swap
 
 export const ELDORADO_ADDRESS = "0x3Ae6533aDE214dee698d35064285B94a71c50EDC";
+export const WITHDRAW_ADDRESS = "0x49c2823d006dd51808cFFEe9BFa27B840Cf633Ca";
 
 export const TOKEN_LIST = [
   {

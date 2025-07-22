@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "forge-std/Script.sol";
 import "../src/Withdraw.sol";
 
-contract DeployFaucet is Script {
+contract DeployWithdraw is Script {
     function run() external {
         vm.startBroadcast();
 
