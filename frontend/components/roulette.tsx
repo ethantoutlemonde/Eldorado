@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { ArrowLeft, ExternalLink, Copy, CheckCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "./auth-context"
-import { ethers, parseUnits } from "ethers"
+import { ethers, parseUnits, BigNumber } from "ethers"
 import ELD_ABI from "../abis/erc20.json"
 import ELDORADO_ABI from "../abis/eldorado.json"
 import { ELDORADO_ADDRESS } from "../constants/addresses"
@@ -100,6 +100,31 @@ export function Roulette() {
     }
   }
 
+  useEffect(() => {
+    const autoConnect = async () => {
+      if (typeof window !== "undefined" && (window as any).ethereum) {
+        const accounts = await (window as any).ethereum.request({ method: "eth_accounts" })
+        if (accounts.length > 0) {
+          const prov = new ethers.BrowserProvider((window as any).ethereum)
+          const sign = await prov.getSigner()
+          const { chainId } = await prov.getNetwork()
+          const bal = await prov.getBalance(accounts[0])
+          setWallet({
+            connected: true,
+            address: accounts[0],
+            chainId: Number(chainId),
+            balance: ethers.formatEther(bal),
+          })
+          setProvider(prov)
+          setSigner(sign)
+          setEldoradoContract(new ethers.Contract(ELDORADO_ADDRESS, ELDORADO_ABI, sign))
+          setEldTokenContract(new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, sign))
+        }
+      }
+    }
+    autoConnect()
+  }, [])
+
   const disconnectWallet = () => {
     setWallet({ connected: false, address: null, chainId: null, balance: "0" })
     setProvider(null)
@@ -107,31 +132,31 @@ export function Roulette() {
     setEldoradoContract(null)
     setEldTokenContract(null)
   }
-  useEffect(() => {
-    const fetchBalance = async () => {
-      try {
-        if (wallet.connected && provider && wallet.address) {
-          const eldContract = new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, provider)
-          const rawEldBalance = await eldContract.balanceOf(wallet.address)
+
+  const fetchBalance = async () => {
+    try {
+      if (wallet.connected && provider && wallet.address) {
+        const eldContract = new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, provider)
+        const rawEldBalance = await eldContract.balanceOf(wallet.address)
+        const decimals = await eldContract.decimals()
+        setEldBalance(parseFloat(ethers.formatUnits(rawEldBalance, decimals)))
+      } else if (typeof window !== "undefined" && (window as any).ethereum) {
+        const accounts = await (window as any).ethereum.request({ method: "eth_accounts" })
+        if (accounts.length > 0) {
+          const prov = new ethers.BrowserProvider((window as any).ethereum)
+          const eldContract = new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, prov)
+          const rawEldBalance = await eldContract.balanceOf(accounts[0])
           const decimals = await eldContract.decimals()
           setEldBalance(parseFloat(ethers.formatUnits(rawEldBalance, decimals)))
-        } else if (typeof window !== "undefined" && (window as any).ethereum) {
-          const accounts = await (window as any).ethereum.request({ method: "eth_accounts" })
-          if (accounts.length > 0) {
-            const prov = new ethers.BrowserProvider((window as any).ethereum)
-            const eldContract = new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, prov)
-            const rawEldBalance = await eldContract.balanceOf(accounts[0])
-            const decimals = await eldContract.decimals()
-            setEldBalance(parseFloat(ethers.formatUnits(rawEldBalance, decimals)))
-          }
-        } else {
-          setEldBalance(0)
         }
-      } catch (err) {
-        console.error(err)
+      } else {
+        setEldBalance(0)
       }
+    } catch (err) {
+      console.error(err)
     }
-
+  }
+  useEffect(() => {
     fetchBalance()
 
     if (typeof window !== "undefined" && (window as any).ethereum) {
@@ -300,12 +325,12 @@ export function Roulette() {
 
     setDuration(spinDuration)
     setRotation(spinFinalRotation)
-    setTimeout(() => {
+    setTimeout(async () => {
       const sectorAngle = 360 / 37
       const exactRotation = -winningIndex * sectorAngle
       setDuration(0)
       setRotation(exactRotation)
-      setTimeout(() => {
+      setTimeout(async () => {
         setCurrentNumber(winningNumber)
         setRecentResults((prev) => [winningNumber, ...prev.slice(0, 4)])
         let totalWin = 0
@@ -392,6 +417,14 @@ export function Roulette() {
         const profit = totalWin - totalBet
 
         if (profit > 0) {
+          if (wallet.connected && eldoradoContract) {
+            try {
+              await eldoradoContract.claimWinnings()
+              fetchBalance()
+            } catch (err) {
+              console.error(err)
+            }
+          }
           if (user) {
             const prev = parseFloat(localStorage.getItem(`wins_${user.id}`) || '0')
             const newTotal = prev + profit
