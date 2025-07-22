@@ -210,14 +210,34 @@ export function BlackjackTable() {
 
   const newDeck = () => shuffle(suits.flatMap((s) => ranks.map((r) => s + r)))
 
-  const startGame = () => {
+  const startGame = async () => {
     if (balance < bet || player.length > 0) return
-    setBalance((b) => b - bet)
-    const d = newDeck()
-    setDeck(d.slice(4))
-    setPlayer([d[0], d[2]])
-    setDealer([d[1], d[3]])
-    setRevealed(false)
+
+    if (!wallet.connected || !eldoradoContract || !eldTokenContract || !wallet.address) {
+      console.warn("Wallet not connected")
+      return
+    }
+
+    try {
+      const amount = parseUnits(bet.toString(), 18)
+      const allowance: bigint = await eldTokenContract.allowance(wallet.address, ELDORADO_ADDRESS)
+      if (allowance < amount) {
+        const approveTx = await eldTokenContract.approve(ELDORADO_ADDRESS, amount)
+        await approveTx.wait()
+      }
+
+      const tx = await eldoradoContract.placeBet(0, amount)
+      await tx.wait()
+
+      setBalance((b) => b - bet)
+      const d = newDeck()
+      setDeck(d.slice(4))
+      setPlayer([d[0], d[2]])
+      setDealer([d[1], d[3]])
+      setRevealed(false)
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   const hit = () => {
