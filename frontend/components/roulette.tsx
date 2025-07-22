@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { ArrowLeft, ExternalLink, Copy, CheckCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "./auth-context"
+import { ethers } from "ethers"
+import ELD_ABI from "../abis/erc20.json"
 
 // Types pour la blockchain
 interface WalletState {
@@ -62,6 +64,40 @@ export function Roulette() {
       }
     }
   }, [user])
+
+  const [eldBalance, setEldBalance] = useState(0)
+  const ELD_TOKEN_ADDRESS = "0xae1056bB5fd8EF47f324B39831ca8db14573014f"
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        if (typeof window !== "undefined" && (window as any).ethereum) {
+          const accounts = await (window as any).ethereum.request({ method: "eth_accounts" })
+            const provider = new ethers.BrowserProvider((window as any).ethereum)
+            const account = accounts[0]
+  
+            // ELD balance
+            const eldContract = new ethers.Contract(ELD_TOKEN_ADDRESS, ELD_ABI, provider)
+            const rawEldBalance = await eldContract.balanceOf(account)
+            const decimals = await eldContract.decimals()
+            setEldBalance(parseFloat(ethers.formatUnits(rawEldBalance, decimals)))
+          } else {
+            setEldBalance(0)
+          }
+        }
+      catch (err) {
+        console.error(err)
+      }
+    }
+  
+    fetchBalance()
+  
+    if (typeof window !== "undefined" && (window as any).ethereum) {
+      (window as any).ethereum.on("accountsChanged", fetchBalance)
+      return () => {
+        (window as any).ethereum.removeListener("accountsChanged", fetchBalance)
+      }
+    }
+  }, [])
 
   const numbers = [
     0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29,
@@ -132,8 +168,33 @@ export function Roulette() {
     )
   }
 
+  async function playRound(betType: number, amount: BigNumber) {
+  // 1. Approval (si pas encore faite)
+  const allowance = await eldTokenContract.allowance(userAddress, eldoradoAddress);
+  if (allowance.lt(amount)) {
+    await eldTokenContract.approve(eldoradoAddress, amount);
+  }
+
+  // 2. Placer la mise
+  await eldoradoContract.placeBet(betType, amount);
+
+  // 3. Attendre que l’admin lance le spin (possible via event SpinResult)
+  // Ici, tu peux afficher un message d’attente...
+
+  // 4. Interroger checkVictory pour savoir si le joueur a gagné
+  const won = await eldoradoContract.checkVictory(userAddress);
+
+  if (won) {
+    // 5. Réclamer les gains
+    await eldoradoContract.claimWinnings();
+    alert("Félicitations, vous avez gagné !");
+  } else {
+    alert("Désolé, vous avez perdu cette fois.");
+  }
+  }
+
   const placeBet = (betType: string, amount: number) => {
-    if (balance >= amount && !isSpinning && !wallet.connected) {
+    if (eldBalance >= amount && !isSpinning && !wallet.connected) {
       setBets((prev) => ({
         ...prev,
         [betType]: (prev[betType] || 0) + amount,
@@ -180,41 +241,41 @@ export function Roulette() {
 
           switch (betType) {
             case `number-${winningNumber}`:
-              multiplier = 35
+              multiplier = 1.8
               won = true
               betName = `Number ${winningNumber}`
               break
             case "red":
               if (getNumberColor(winningNumber) === "red") {
-                multiplier = 1
+                multiplier = 1.8
                 won = true
                 betName = "Red"
               }
               break
             case "black":
               if (getNumberColor(winningNumber) === "black") {
-                multiplier = 1
+                multiplier = 1.8
                 won = true
                 betName = "Black"
               }
               break
             case "low":
               if (winningNumber >= 1 && winningNumber <= 18) {
-                multiplier = 1
+                multiplier = 1.8
                 won = true
                 betName = "1-18"
               }
               break
             case "high":
               if (winningNumber >= 19 && winningNumber <= 36) {
-                multiplier = 1
+                multiplier = 1.8
                 won = true
                 betName = "19-36"
               }
               break
           }
 
-          const winAmount = betAmount * (multiplier + 1)
+          const winAmount = betAmount * (multiplier)
           totalWin += winAmount
 
           if (won) {
@@ -299,9 +360,6 @@ export function Roulette() {
             Cyber Roulette
           </h1>
           <p className="text-gray-300">Place your bets and spin the wheel!</p>
-          <p className="text-sm text-green-400 mt-2">
-            Chain ID: {wallet.chainId} | Wallet Balance: {wallet.balance} ELD
-          </p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -366,7 +424,7 @@ export function Roulette() {
               <div className="text-center">
                 <div className="text-sm text-gray-400">{wallet.connected ? "Game Balance" : "Balance"}</div>
                 <div className="text-2xl font-bold text-white">
-                  {balance} {wallet.connected ? "tokens" : "ELD"}
+                  {eldBalance} {wallet.connected ? "tokens" : "ELD"}
                 </div>
                 <div className="text-sm text-gray-400 mt-2">
                   Total Bet: {totalBetAmount} {wallet.connected ? "tokens" : "ELD"}
