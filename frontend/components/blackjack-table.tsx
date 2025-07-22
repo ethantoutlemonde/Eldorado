@@ -10,6 +10,8 @@ import { ethers, parseUnits } from "ethers"
 import ELD_ABI from "../abis/erc20.json"
 import ELDORADO_ABI from "../abis/eldorado.json"
 import { ELDORADO_ADDRESS } from "../constants/addresses"
+import { WITHDRAW_CONTRACT_ADDRESS } from "../constants/addresses"
+import withdrawAbi from "../abis/withdraw.json"
 
 const suits = ["♠", "♥", "♦", "♣"]
 const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
@@ -63,6 +65,8 @@ export function BlackjackTable() {
   const [totalWins, setTotalWins] = useState(0)
   const { user } = useAuth()
   const { balance: eldBalance, refresh: refreshEldBalance } = useEldBalance()
+  const [winAmount, setWinAmount] = useState<number | null>(null)
+
 
   const [showCelebration, setShowCelebration] = useState(false)
   const [showSadness, setShowSadness] = useState(false)
@@ -137,6 +141,23 @@ export function BlackjackTable() {
     setEldTokenContract(null)
   }
 
+  async function requestTokens(amount: string | number) {
+    try {
+      const contract = new ethers.Contract(WITHDRAW_CONTRACT_ADDRESS, withdrawAbi.abi, signer);
+
+      const tx = await contract.requestTokens(ethers.parseUnits(amount.toString(), 18));
+      console.log("Transaction sent:", tx.hash);
+
+      const receipt = await tx.wait();
+      console.log("Transaction confirmed:", receipt.transactionHash);
+
+      return receipt;
+    } catch (error) {
+      console.error("Erreur lors de l'appel à requestTokens:", error);
+      throw error;
+    }
+  }
+
   const recordBet = async (won: boolean) => {
     if (!wallet.connected || !eldoradoContract || !eldTokenContract || !wallet.address) return
     try {
@@ -187,12 +208,16 @@ export function BlackjackTable() {
 
   const handlePayout = (res: string, pv: number) => {
     if (res === "Player wins") {
-      let win = bet * 2
+      let win = bet * 2.2
       if (pv === 21 && player.length === 2) win = bet * 2.5
       const profit = win - bet
       setBalance((b) => b + win)
       setShowCelebration(true)
-      setTimeout(() => setShowCelebration(false), 3000)
+      setWinAmount(profit)
+      setTimeout(() => {
+        setShowCelebration(false)
+        setWinAmount(null)
+      }, 15000)
       if (profit > 0 && user) {
         const prev = Number.parseFloat(localStorage.getItem(`wins_${user.id}_bj`) || "0")
         const newTotal = prev + profit
@@ -329,28 +354,6 @@ export function BlackjackTable() {
 
   return (
     <div className="min-h-screen pt-24 pb-8 px-4 relative">
-      {/* Celebration Animation */}
-      {showCelebration && (
-        <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
-          <div className="animate-bounce text-6xl">🎉</div>
-          <Sparkles className="absolute animate-spin text-yellow-400 w-12 h-12" />
-          <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 text-2xl font-bold text-yellow-400 animate-pulse">
-            You Win!
-          </div>
-        </div>
-      )}
-
-      {/* Sadness Animation */}
-      {showSadness && (
-        <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
-          <div className="animate-bounce text-6xl">😢</div>
-          <Frown className="absolute animate-pulse text-blue-400 w-12 h-12" />
-          <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 text-2xl font-bold text-blue-400 animate-pulse">
-            Better luck next time!
-          </div>
-        </div>
-      )}
-
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center mb-8">
@@ -381,18 +384,6 @@ export function BlackjackTable() {
         <div className="mt-4 flex justify-center space-x-4">
           {wallet.connected ? (
             <>
-              <button
-                onClick={redeem}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold"
-              >
-                Redeem
-              </button>
-              <button
-                onClick={disconnectWallet}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold"
-              >
-                Disconnect
-              </button>
             </>
           ) : (
             <button
@@ -407,6 +398,37 @@ export function BlackjackTable() {
 
         {/* Game Area */}
         <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 sm:p-8">
+        {/* Celebration Animation */}
+          {showCelebration && (
+            <div className="relative bg-gradient-to-br from-pink-300 via-purple-400 to-violet-500 text-white rounded-2xl px-10 py-8 shadow-2xl border-4 border-pink-200 animate-bounce-slow pointer-events-auto">
+              <div className="text-4xl sm:text-5xl font-extrabold text-center mb-4 drop-shadow-lg">
+                You Win!
+              </div>
+              <div className="text-3xl sm:text-4xl font-bold text-center text-green-800 mb-6 animate-pulse">
+                +{winAmount} ELD
+              </div>
+              <div className="flex justify-center">
+                <button
+                  onClick={() => requestTokens(winAmount)}
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white text-lg px-6 py-3 rounded-xl font-semibold shadow-lg transition-all duration-200 active:scale-95"
+                >
+                  Redeem My Tokens
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Sadness Animation */}
+          {showSadness && (
+            <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
+              <Frown className="absolute animate-pulse text-blue-400 w-12 h-12" />
+              <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 text-2xl font-bold text-blue-400 animate-pulse">
+                Better luck next time!
+              </div>
+            </div>
+          )}
+
+
           {player.length === 0 ? (
             <div className="text-center space-y-8">
               {/* Betting Controls */}
